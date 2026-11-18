@@ -1,0 +1,2442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>우리 반 수호천사 마니또 게임 👼</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 1학년 아이들을 위한 동글동글 귀여운 한글 폰트 (Jua + Noto Sans KR) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <!-- QR코드 생성 라이브러리 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- 구글 사이트 보안 액자 안에서도 1클릭으로 진짜 PDF 파일을 생성하는 라이브러리 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    :root {
+      --font-cute: 'Jua', 'Noto Sans KR', sans-serif;
+      --font-body: 'Noto Sans KR', sans-serif;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 35%, #fce7f3 70%, #e0f2fe 100%);
+      min-height: 100vh;
+      color: #334155;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .font-cute {
+      font-family: var(--font-cute);
+      letter-spacing: 0.02em;
+    }
+
+    /* 둥실둥실 애니메이션 */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-6px) rotate(2deg); }
+    }
+    .animate-float {
+      animation: floatSlow 3.2s ease-in-out infinite;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.85); opacity: 0; }
+      70% { transform: scale(1.04); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* 1칸 카드 슬롯 전구 반짝임 및 블라인드 블러 효과 */
+    @keyframes bulbBlink {
+      0%, 100% { opacity: 0.45; transform: scale(0.92); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
+    .slot-bulb {
+      animation: bulbBlink 0.9s ease-in-out infinite;
+    }
+    .slot-bulb:nth-child(even) {
+      animation-delay: 0.45s;
+    }
+    .slot-reel-blur {
+      filter: blur(2.2px);
+    }
+
+    /* 말랑말랑 3D 버튼 효과 */
+    .btn-jelly {
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.15s ease;
+    }
+    .btn-jelly:active:not(:disabled) {
+      transform: translateY(3px) scale(0.98);
+    }
+
+    /* 1초 살짝 보기 전환 효과 */
+    .nickname-blur {
+      filter: blur(8px);
+      opacity: 0.18;
+      transform: scale(0.94);
+    }
+    .nickname-clear {
+      filter: blur(0px);
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* 마스코트 뀽이 반짝임 */
+    @keyframes wandSparkle {
+      0%, 100% { transform: rotate(-4deg) scale(1); }
+      50% { transform: rotate(6deg) scale(1.06); }
+    }
+    .kkyung-mascot-hover:hover {
+      animation: wandSparkle 0.8s ease-in-out infinite;
+    }
+
+    /* 인쇄 / PDF 변환 전용 스타일 */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+      body {
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only-area {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .activity-sheet-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        box-shadow: none !important;
+        border: 2px dashed #94a3b8 !important;
+        margin-bottom: 8mm !important;
+      }
+      .activity-sheet-card.single-per-page {
+        break-after: page;
+        page-break-after: always;
+        min-height: 265mm;
+      }
+    }
+  </style>
+</head>
+<body class="pb-16">
+
+  <!-- 상단 토스트 알림 배너 (alert 대체) -->
+  <div id="toast-container" class="no-print fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md pointer-events-none transition-all duration-300 opacity-0 -translate-y-4">
+    <div id="toast-box" class="bg-slate-800/95 text-white px-5 py-3.5 rounded-2xl shadow-xl border-2 border-amber-300 flex items-center gap-3 text-sm sm:text-base font-medium">
+      <span id="toast-icon" class="text-xl">👼</span>
+      <span id="toast-msg" class="leading-snug">알림 메시지</span>
+    </div>
+  </div>
+
+  <!-- 커스텀 확인 모달 (confirm 대체) -->
+  <div id="confirm-modal" class="no-print fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border-4 border-amber-200 animate-pop text-center">
+      <div id="confirm-emoji" class="text-5xl mb-3">👼</div>
+      <h3 id="confirm-title" class="font-cute text-2xl text-slate-800 mb-2">확인해 주세요!</h3>
+      <p id="confirm-desc" class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6">정말 진행할까요?</p>
+      <div class="grid grid-cols-2 gap-3">
+        <button type="button" onclick="closeConfirmModal(false)" class="btn-jelly py-3 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base">
+          취소할래요
+        </button>
+        <button type="button" id="confirm-ok-btn" onclick="closeConfirmModal(true)" class="btn-jelly py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-400 text-white font-bold text-base shadow-md">
+          네, 좋아요! ✨
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 상단 헤더 & 내비게이션 -->
+  <header class="no-print max-w-5xl mx-auto pt-5 px-4">
+    <div class="bg-white/90 backdrop-blur-md rounded-3xl p-4 sm:p-5 shadow-lg border-2 border-amber-200 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3 text-center md:text-left">
+        <div id="header-kkyung-mascot" onclick="pokeKkyungMascot()" title="뀽이를 눌러보세요!" class="cursor-pointer w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-br from-amber-100 via-pink-100 to-sky-100 border-2 border-amber-200 flex items-center justify-center shadow-inner animate-float kkyung-mascot-hover shrink-0 overflow-hidden">
+          👼
+        </div>
+        <div>
+          <div class="flex items-center justify-center md:justify-start gap-2 flex-wrap">
+            <h1 class="font-cute text-2xl sm:text-3xl text-slate-800">우리 반 수호천사 마니또</h1>
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-pink-100 text-pink-700 border border-pink-200">
+              마스코트: 수호천사 뀽 👼
+            </span>
+            <span id="room-badge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+              방 코드: CLASS1
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5">뀽이랑 같이 몰래 도와주고 반짝반짝 별자리를 완성해요 뀽! ✨</p>
+        </div>
+      </div>
+
+      <!-- 우측 컨트롤 버튼들 -->
+      <div class="flex items-center gap-2 flex-wrap justify-center">
+        <button type="button" id="sound-toggle-btn" onclick="toggleSound()" class="btn-jelly px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs sm:text-sm font-bold flex items-center gap-1.5" title="효과음 켜기/끄기">
+          <span id="sound-icon">🔊</span>
+          <span id="sound-label" class="hidden sm:inline">소리 켜짐</span>
+        </button>
+
+        <button type="button" id="sheets-modal-btn" onclick="openSheetsModal()" class="btn-jelly px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-2 border-emerald-200 text-xs sm:text-sm font-bold flex items-center gap-1.5">
+          <span>📊</span>
+          <span>구글 시트 연동</span>
+          <span id="sheets-status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 화면 전환 탭 (학생 QR 접속 시 자동으로 숨겨짐) -->
+    <nav id="main-nav-tabs" class="mt-4 grid grid-cols-3 gap-2 sm:gap-3 bg-white/80 p-2 rounded-2xl shadow-sm border border-amber-100">
+      <button type="button" id="tab-btn-host" onclick="switchTab('host')" class="btn-jelly py-2.5 sm:py-3 px-2 rounded-xl font-cute text-base sm:text-lg flex items-center justify-center gap-1.5 transition-all bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-md">
+        <span>👩‍🏫</span>
+        <span>선생님 화면</span>
+      </button>
+      <button type="button" id="tab-btn-student" onclick="switchTab('student')" class="btn-jelly py-2.5 sm:py-3 px-2 rounded-xl font-cute text-base sm:text-lg flex items-center justify-center gap-1.5 transition-all text-slate-600 hover:bg-amber-50">
+        <span>🎡</span>
+        <span>아이들 돌림판</span>
+      </button>
+      <button type="button" id="tab-btn-print" onclick="switchTab('print')" class="btn-jelly py-2.5 sm:py-3 px-2 rounded-xl font-cute text-base sm:text-lg flex items-center justify-center gap-1.5 transition-all text-slate-600 hover:bg-amber-50">
+        <span>🖨️</span>
+        <span>활동기록판 PDF</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- 메인 콘텐츠 컨테이너 -->
+  <main class="max-w-5xl mx-auto px-4 mt-5">
+
+    <!-- =========================================================
+         1. 선생님 화면 (호스트 & QR코드 & 난수 배정 현황)
+    ========================================================== -->
+    <section id="view-host" class="space-y-5">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+        <!-- 왼쪽: 명단 입력 및 난수 배정 컨트롤 (7컬럼) -->
+        <div class="lg:col-span-7 bg-white/95 rounded-3xl p-5 sm:p-6 shadow-md border-2 border-amber-100 space-y-4">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <h2 class="font-cute text-xl sm:text-2xl text-slate-800 flex items-center gap-2">
+              <span>📝</span>
+              <span>1단계: 우리 반 친구들 명단 & 난수 배정</span>
+            </h2>
+            <span id="draw-round-badge" class="text-xs font-bold px-3 py-1 rounded-full bg-pink-100 text-pink-700 border border-pink-200">
+              난수표 #1
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="sm:col-span-1">
+              <label for="room-code-input" class="block text-xs font-bold text-slate-500 mb-1">학급 방 코드</label>
+              <input id="room-code-input" type="text" value="CLASS1" onchange="updateRoomCode(this.value)" placeholder="예: 1학년2반" class="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 focus:border-amber-400 focus:outline-none font-bold text-slate-700 text-sm" />
+            </div>
+            <div class="sm:col-span-2 flex items-end gap-1.5 flex-wrap sm:flex-nowrap">
+              <button type="button" onclick="fillSampleStudents()" class="btn-jelly flex-1 py-2.5 px-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-xs sm:text-sm font-bold whitespace-nowrap">
+                🐣 예시 명단
+              </button>
+              <button type="button" onclick="syncFromCloudManual()" class="btn-jelly py-2.5 px-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs sm:text-sm font-bold whitespace-nowrap">
+                🔄 시트 불러오기
+              </button>
+              <button type="button" onclick="requestClearAll()" class="btn-jelly py-2.5 px-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs sm:text-sm font-bold whitespace-nowrap" title="화면 명단과 구글 시트를 모두 비웁니다">
+                🧹 명단 초기화
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="student-names-input" class="text-xs sm:text-sm font-bold text-slate-600">
+                친구 이름을 줄바꿈 또는 쉼표(,)로 입력해 주세요 (최소 2명)
+              </label>
+              <span id="student-count-label" class="text-xs font-bold text-amber-600">현재 0명</span>
+            </div>
+            <textarea id="student-names-input" rows="4" placeholder="김민준, 이서연, 박도윤, 최지우, 정하준, 강서윤, 조시우, 윤하은" class="w-full p-3.5 rounded-2xl border-2 border-amber-200 focus:border-amber-400 focus:outline-none text-slate-700 text-sm sm:text-base leading-relaxed bg-amber-50/30"></textarea>
+          </div>
+
+          <!-- 난수 생성 및 초기화 버튼 그룹 -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+            <button type="button" onclick="generateNewAssignments(false)" class="btn-jelly sm:col-span-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white font-cute text-lg shadow-md flex items-center justify-center gap-1.5">
+              <span>✨</span>
+              <span>마니또 배정하기</span>
+            </button>
+            <button type="button" onclick="requestReShuffle()" class="btn-jelly py-3 px-3 rounded-2xl bg-pink-50 hover:bg-pink-100 text-pink-700 border-2 border-pink-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5">
+              <span>🎲</span>
+              <span>난수표 초기화 (다시 뽑기)</span>
+            </button>
+            <button type="button" onclick="requestResetSpinsOnly()" class="btn-jelly py-3 px-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5">
+              <span>🔄</span>
+              <span>돌림판만 초기화</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 오른쪽: 학생 접속용 QR코드 카드 (5컬럼) -->
+        <div class="lg:col-span-5 bg-white/95 rounded-3xl p-5 sm:p-6 shadow-md border-2 border-sky-100 flex flex-col items-center justify-between text-center">
+          <div class="w-full">
+            <h2 class="font-cute text-xl sm:text-2xl text-slate-800 flex items-center justify-center gap-2">
+              <span>📱</span>
+              <span>2단계: 아이들 접속 QR코드</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">아이들이 태블릿/스마트폰 카메라로 찍으면 바로 돌림판이 열려요!</p>
+          </div>
+
+          <!-- 샌드박스/미리보기 환경 안내 배너 -->
+          <div id="sandbox-warning-banner" class="hidden w-full mt-3 p-3 rounded-2xl bg-amber-50 border border-amber-300 text-left text-xs text-amber-900 leading-relaxed">
+            <p class="font-bold flex items-center gap-1">
+              <span>💡</span>
+              <span>핸드폰으로 QR 접속 시 꼭 확인하세요!</span>
+            </p>
+            <p class="mt-1">현재 화면은 작업창 미리보기 주소라 핸드폰에서 직접 열리지 않아요. 상단 <b>[📊 구글 시트 연동]</b>에서 배포 URL을 연결하시면 <b>실제 Google 모바일 접속 QR</b>로 자동 전환됩니다!</p>
+          </div>
+
+          <!-- QR코드 렌더링 박스 -->
+          <div class="my-4 p-4 bg-white rounded-3xl border-4 border-dashed border-sky-200 shadow-inner flex items-center justify-center min-h-[200px] min-w-[200px]">
+            <div id="qrcode-box" class="flex items-center justify-center"></div>
+          </div>
+
+          <div class="w-full space-y-2">
+            <div class="bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 text-[11px] text-slate-500 truncate" id="join-url-preview">
+              접속 주소 준비 중...
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="copyJoinUrl()" class="btn-jelly py-2.5 px-3 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs sm:text-sm shadow-xs">
+                🔗 접속 링크 복사
+              </button>
+              <button type="button" onclick="switchTab('student')" class="btn-jelly py-2.5 px-3 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs sm:text-sm">
+                👀 학생 화면 미리보기
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 하단: 실시간 수호천사 배정 현황표 -->
+      <div class="bg-white/95 rounded-3xl p-5 sm:p-6 shadow-md border-2 border-amber-100">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 class="font-cute text-xl sm:text-2xl text-slate-800 flex items-center gap-2">
+              <span>📋</span>
+              <span>수호천사 배정 현황표 (고정 난수표)</span>
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+              교실 TV에 띄울 때는 <b>비밀 모드</b>를 켜두면 아이들이 누구를 뽑았는지 볼 수 없어요!
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap">
+            <span id="progress-counter" class="text-xs sm:text-sm font-bold px-3 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+              뽑기 완료: 0 / 0명
+            </span>
+            <button type="button" id="secret-toggle-btn" onclick="toggleHostSecretMode()" class="btn-jelly px-3.5 py-2 rounded-xl bg-slate-800 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-xs">
+              <span id="secret-toggle-icon">🙈</span>
+              <span id="secret-toggle-text">대상 이름 가리기 (비밀 모드 ON)</span>
+            </button>
+            <button type="button" onclick="requestClearAll()" class="btn-jelly px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-xs sm:text-sm">
+              🗑️ 전체 비우기
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border border-slate-200">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-amber-50/80 text-slate-700 text-xs sm:text-sm border-b border-amber-200">
+                <th class="py-3 px-4 font-bold">번호</th>
+                <th class="py-3 px-4 font-bold">👼 수호천사 (뽑는 아이)</th>
+                <th class="py-3 px-4 font-bold">🐾 부여된 비밀 별명</th>
+                <th class="py-3 px-4 font-bold">🎯 도와줄 친구 (대상)</th>
+                <th class="py-3 px-4 font-bold text-center">돌림판 상태</th>
+              </tr>
+            </thead>
+            <tbody id="host-table-body" class="divide-y divide-slate-100 text-sm sm:text-base">
+              <!-- JS로 렌더링 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         2. 아이들 화면 (1학년 맞춤 샬랄라 심쿵 돌림판 + 1초 이름 살짝 보기)
+    ========================================================== -->
+    <section id="view-student" class="hidden max-w-xl mx-auto">
+      <div class="bg-white/95 rounded-3xl p-5 sm:p-7 shadow-xl border-4 border-amber-200 text-center relative overflow-hidden">
+        <!-- 장식용 별빛 -->
+        <div class="absolute top-3 left-4 text-2xl opacity-60 pointer-events-none">✨</div>
+        <div class="absolute top-3 right-4 text-2xl opacity-60 pointer-events-none">🌟</div>
+
+        <!-- Step A: 이름 선택 및 돌림판 화면 -->
+        <div id="student-spin-stage" class="space-y-4">
+          <div>
+            <span class="inline-block px-3.5 py-1 rounded-full bg-pink-100 text-pink-700 font-bold text-xs sm:text-sm mb-2">
+              👼 비밀 수호천사 뽑기
+            </span>
+            <h2 class="font-cute text-2xl sm:text-3xl text-slate-800">
+              내 이름을 누르고 돌림판을 돌려요!
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+              친구들이 보지 않게 화면을 살짝 가리고 돌려주세요 🤫
+            </p>
+          </div>
+
+          <!-- 이름 입력칸 -->
+          <div class="max-w-xs mx-auto">
+            <input id="student-name-input" type="text" placeholder="여기에 내 이름을 적거나 아래 버튼을 눌러요" class="w-full px-4 py-3 rounded-2xl border-2 border-amber-300 focus:border-pink-400 focus:outline-none text-center font-cute text-xl text-slate-800 bg-amber-50/40" />
+          </div>
+
+          <!-- 1학년 아이들이 터치하기 쉬운 이름 버튼 칩 목록 -->
+          <div id="student-quick-chips" class="flex flex-wrap justify-center gap-2 max-h-36 overflow-y-auto p-2 bg-slate-50/80 rounded-2xl border border-slate-100">
+            <!-- JS로 렌더링 -->
+          </div>
+
+          <!-- 777 스타일 1칸 비밀 카드 슬롯 머신 -->
+          <div class="relative max-w-[310px] mx-auto my-3">
+            <div class="flex items-center justify-center gap-1.5 mb-1.5">
+              <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gradient-to-r from-amber-400 via-pink-400 to-purple-400 text-white font-cute text-xs sm:text-sm shadow-xs">
+                <span>🎰</span>
+                <span>수호천사 비밀 카드 슬롯</span>
+                <span>✨</span>
+              </span>
+            </div>
+
+            <!-- 슬롯 외곽 케이스 -->
+            <div id="slot-machine-frame" class="relative rounded-3xl p-3 bg-gradient-to-b from-amber-300 via-pink-300 to-amber-300 shadow-xl border-4 border-amber-400">
+              <!-- 상단 반짝이 전구 -->
+              <div class="flex justify-around items-center pb-2 px-3">
+                <span class="slot-bulb w-2.5 h-2.5 rounded-full bg-white shadow-xs"></span>
+                <span class="slot-bulb w-2.5 h-2.5 rounded-full bg-yellow-100 shadow-xs"></span>
+                <span class="slot-bulb w-2.5 h-2.5 rounded-full bg-white shadow-xs"></span>
+                <span class="slot-bulb w-2.5 h-2.5 rounded-full bg-yellow-100 shadow-xs"></span>
+                <span class="slot-bulb w-2.5 h-2.5 rounded-full bg-white shadow-xs"></span>
+              </div>
+
+              <!-- 1칸 슬롯 창 (가운데 148px 카드 + 위아래 블라인드) -->
+              <div id="slot-viewport" class="relative h-[188px] w-full rounded-2xl bg-gradient-to-b from-amber-50 via-white to-amber-50 overflow-hidden border-2 border-amber-500/40 shadow-inner">
+                <!-- 위/아래 블라인드 그라데이션 가림막 -->
+                <div class="pointer-events-none absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-amber-100/95 via-white/70 to-transparent z-10"></div>
+                <div class="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-amber-100/95 via-white/70 to-transparent z-10"></div>
+
+                <!-- 가운데 당첨 기준선 가이드 -->
+                <div id="slot-center-guide" class="pointer-events-none absolute inset-x-2 top-1/2 -translate-y-1/2 h-[148px] rounded-2xl border-2 border-dashed border-pink-300/90 z-10 flex items-center justify-between px-1.5 transition-all duration-200">
+                  <span class="text-pink-500 text-base drop-shadow-2xs">▶</span>
+                  <span class="text-pink-500 text-base drop-shadow-2xs">◀</span>
+                </div>
+
+                <!-- 세로로 띠리릭 돌아가는 1칸 카드 릴 트랙 -->
+                <div id="slot-reel-strip" class="will-change-transform px-5" style="transform: translate3d(0, 20px, 0);">
+                  <!-- JS로 카드 슬롯 렌더링 -->
+                </div>
+              </div>
+
+              <!-- 하단 반짝이 전구 -->
+              <div class="flex justify-around items-center pt-2 px-3">
+                <span class="slot-bulb w-2.5 h-2.5 rounded-full bg-yellow-100 shadow-xs"></span>
+                <span class="slot-bulb w-2.5 h-2.5 rounded-full bg-white shadow-xs"></span>
+                <span class="slot-bulb w-2.5 h-2.5 rounded-full bg-yellow-100 shadow-xs"></span>
+                <span class="slot-bulb w-2.5 h-2.5 rounded-full bg-white shadow-xs"></span>
+                <span class="slot-bulb w-2.5 h-2.5 rounded-full bg-yellow-100 shadow-xs"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 실시간 슬롯 상태 안내 -->
+          <div id="wheel-live-status" class="min-h-[28px] flex items-center justify-center text-sm sm:text-base font-cute text-pink-600">
+            ✨ 내 이름을 누르고 띠리릭~ 카드 슬롯을 돌려보세요!
+          </div>
+
+          <button type="button" id="spin-wheel-btn" onclick="spinWheel()" class="btn-jelly w-full max-w-sm py-4 px-6 rounded-2xl bg-gradient-to-r from-pink-400 via-amber-400 to-orange-400 hover:from-pink-500 hover:to-orange-500 text-white font-cute text-2xl shadow-lg border-b-4 border-orange-500">
+            🎰 수호천사 카드 슬롯 돌리기!
+          </button>
+        </div>
+
+        <!-- Step B: 뽑기 결과 카드 (큰 별명 + 도움말 + 1초 살짝 보기 반복) -->
+        <div id="student-result-stage" class="hidden space-y-5 animate-pop">
+          <div class="flex flex-col items-center">
+            <div class="flex items-center gap-2 bg-amber-100/90 border border-amber-300 px-3.5 py-1 rounded-full">
+              <span id="result-kkyung-mini" class="w-7 h-7 inline-flex items-center justify-center">👼</span>
+              <span class="text-amber-900 font-bold text-xs sm:text-sm">🎉 뀽이가 전해주는 수호천사 임무 도착!</span>
+            </div>
+            <h2 class="font-cute text-2xl sm:text-3xl text-slate-800 mt-2">
+              <span id="res-angel-name" class="text-pink-600">민준</span> 천사님이 몰래 도와줄 친구는...
+            </h2>
+          </div>
+
+          <!-- 도움말 박스 -->
+          <div class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-3.5 text-left flex items-start gap-2.5">
+            <span class="text-2xl shrink-0">💡</span>
+            <div class="text-xs sm:text-sm text-sky-900 leading-relaxed">
+              <p class="font-bold text-sky-800">도움말: 친구 이름을 확인하는 방법!</p>
+              <p class="mt-0.5">
+                아래 <b>별명 상자</b>를 꾹 누르면 별명이 흐려지면서 <b>친구의 진짜 이름이 1초 동안 아주 작게</b> 보였다가 다시 별명으로 돌아가요! 잊어버렸을 때마다 계속 눌러볼 수 있어요.
+              </p>
+            </div>
+          </div>
+
+          <!-- 터치 가능한 큰 별명 카드 (1초 비밀 이름 공개 영역) -->
+          <div onclick="peekSecretName()" role="button" tabindex="0" aria-label="별명을 눌러 친구 이름 1초 동안 확인하기" class="btn-jelly cursor-pointer select-none relative rounded-3xl p-7 sm:p-9 bg-gradient-to-br from-amber-100 via-pink-100 to-purple-100 border-4 border-amber-300 shadow-lg flex flex-col items-center justify-center min-h-[190px]">
+            <!-- 기본으로 크게 보이는 별명 레이어 -->
+            <div id="nickname-display-layer" class="nickname-clear transition-all duration-200 flex flex-col items-center">
+              <div id="res-target-emoji" class="text-6xl sm:text-7xl mb-3 drop-shadow-xs">🦌</div>
+              <div id="res-target-nickname" class="font-cute text-4xl sm:text-5xl text-slate-800 tracking-wide">
+                작은 사슴
+              </div>
+              <span class="mt-3 inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full bg-white/80 text-pink-600 shadow-2xs">
+                👆 여기를 누르면 친구 이름이 1초 동안 살짝 보여요!
+              </span>
+            </div>
+
+            <!-- 눌렀을 때 1초간 아주 작게 보이는 진짜 이름 오버레이 -->
+            <div id="secret-name-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span class="text-[11px] font-bold text-slate-500 mb-1">🤫 쉿! 1초 비밀 이름</span>
+              <span id="res-target-realname" class="text-sm sm:text-base font-extrabold text-rose-600 bg-white/95 px-3 py-1 rounded-full border border-rose-200 shadow-xs">
+                김철수
+              </span>
+            </div>
+          </div>
+
+          <div class="pt-1 flex flex-col sm:flex-row gap-2.5 justify-center">
+            <button type="button" onclick="resetStudentView()" class="btn-jelly py-3 px-5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">
+              🔙 처음 화면으로 돌아가기
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         3. 활동기록판 PDF 변환 & 별자리 수행판
+    ========================================================== -->
+    <section id="view-print" class="space-y-5">
+      <!-- 인쇄 설정 컨트롤 패널 (인쇄 시 숨김) -->
+      <div class="no-print bg-white/95 rounded-3xl p-5 sm:p-6 shadow-md border-2 border-purple-200 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="font-cute text-xl sm:text-2xl text-slate-800 flex items-center gap-2">
+              <span>🌟</span>
+              <span>수호천사 별자리 활동기록판 설정</span>
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+              비밀 유지를 위해 <b>수호천사 이름</b>과 <b>대상의 별명</b>만 적히며, 착한 일을 할 때마다 별을 하나씩 색칠해 별자리를 완성해요!
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button type="button" id="pdf-download-btn" onclick="downloadDirectPDF()" class="btn-jelly py-3.5 px-5 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white font-cute text-lg sm:text-xl shadow-lg flex items-center justify-center gap-2">
+              <span>📥</span>
+              <span id="pdf-download-btn-text">활동기록판 PDF 파일 저장</span>
+            </button>
+            <button type="button" onclick="triggerPrintPDF()" class="btn-jelly py-3.5 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5" title="일반 웹 브라우저 인쇄 창 열기">
+              <span>🖨️</span>
+              <span>인쇄 창</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 옵션 바: 별 개수 (10/15/20개) + 아이들마다 다른 별자리 랜덤 배정 + 용지 배치 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-purple-100">
+          <!-- 옵션 1: 별 개수 선택 -->
+          <div class="bg-purple-50/70 p-3.5 rounded-2xl border border-purple-100">
+            <label class="block text-xs font-bold text-purple-900 mb-2">1️⃣ 별자리 칸 수 (별 개수)</label>
+            <div class="grid grid-cols-3 gap-1.5">
+              <button type="button" id="star-count-10" onclick="setConstellationStarCount(10)" class="btn-jelly py-2 rounded-xl font-bold text-xs sm:text-sm bg-purple-600 text-white shadow-xs">
+                ⭐ 10개
+              </button>
+              <button type="button" id="star-count-15" onclick="setConstellationStarCount(15)" class="btn-jelly py-2 rounded-xl font-bold text-xs sm:text-sm bg-white text-purple-800 border border-purple-200">
+                ⭐ 15개
+              </button>
+              <button type="button" id="star-count-20" onclick="setConstellationStarCount(20)" class="btn-jelly py-2 rounded-xl font-bold text-xs sm:text-sm bg-white text-purple-800 border border-purple-200">
+                ⭐ 20개
+              </button>
+            </div>
+          </div>
+
+          <!-- 옵션 2: 별자리 모양 배정 방식 -->
+          <div class="bg-amber-50/70 p-3.5 rounded-2xl border border-amber-100">
+            <label for="constellation-mode-select" class="block text-xs font-bold text-amber-900 mb-2">2️⃣ 별자리 모양 선택</label>
+            <div class="flex gap-1.5">
+              <select id="constellation-mode-select" onchange="setConstellationMode(this.value)" class="flex-1 px-3 py-2 rounded-xl border border-amber-200 bg-white text-xs sm:text-sm font-bold text-slate-700 focus:outline-none">
+                <option value="random" selected>🎲 아이들마다 다르게 랜덤 배정 (6종)</option>
+                <option value="crown">👑 반짝반짝 왕관 자리 통일</option>
+                <option value="heart">💖 두근두근 하트 자리 통일</option>
+                <option value="rabbit">🐰 깡총깡총 아기토끼 자리 통일</option>
+                <option value="shooting">🌠 소원성취 별똥별 자리 통일</option>
+                <option value="whale">🐳 파란바다 아기고래 자리 통일</option>
+                <option value="butterfly">🦋 팔랑팔랑 나비 자리 통일</option>
+              </select>
+              <button type="button" onclick="reshuffleStudentConstellations()" title="아이들 별자리 다시 섞기" class="btn-jelly px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-white font-bold text-xs shrink-0">
+                🔄 섞기
+              </button>
+            </div>
+          </div>
+
+          <!-- 옵션 3: A4 용지 인쇄 레이아웃 -->
+          <div class="bg-sky-50/70 p-3.5 rounded-2xl border border-sky-100">
+            <label for="print-layout-select" class="block text-xs font-bold text-sky-900 mb-2">3️⃣ A4 용지 배치</label>
+            <select id="print-layout-select" onchange="setPrintLayout(this.value)" class="w-full px-3 py-2 rounded-xl border border-sky-200 bg-white text-xs sm:text-sm font-bold text-slate-700 focus:outline-none">
+              <option value="2perPage" selected>📄 A4 1장당 2명씩 (절취선 카드형)</option>
+              <option value="1perPage">📃 A4 1장당 1명씩 (큰 별자리 도화지형)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 실제 인쇄 및 미리보기 영역 -->
+      <div id="print-cards-container" class="print-only-area space-y-5">
+        <!-- JS로 학생별 활동기록판 카드 생성 -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 화면 우측 하단 떠다니는 공식 마스코트 '뀽' 말풍선 도우미 -->
+  <div id="kkyung-floating-buddy" class="no-print fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2 pointer-events-none">
+    <div id="kkyung-speech-bubble" class="pointer-events-auto max-w-[230px] bg-white/95 backdrop-blur-xs border-2 border-pink-300 rounded-2xl rounded-br-none px-3.5 py-2.5 shadow-lg text-xs sm:text-sm text-slate-700 font-medium leading-snug transition-all duration-300">
+      안녕! 난 수호천사 <b class="text-pink-600">뀽</b>이야 뀽! 나를 누르면 응원 마법을 걸어줄게 ✨
+    </div>
+    <button type="button" onclick="pokeKkyungMascot()" aria-label="수호천사 뀽 마스코트 누르기" class="pointer-events-auto btn-jelly w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-amber-100 via-pink-100 to-sky-100 border-4 border-white shadow-xl flex items-center justify-center animate-float kkyung-mascot-hover overflow-hidden">
+      <span id="floating-kkyung-svg" class="w-full h-full flex items-center justify-center">👼</span>
+    </button>
+  </div>
+
+  <!-- =========================================================
+       구글 시트(Google Sheets + Apps Script) 연동 모달
+  ========================================================== -->
+  <div id="sheets-modal" class="no-print fixed inset-0 z-50 bg-slate-900/55 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl border-4 border-emerald-200 my-auto space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <span class="text-3xl">📊</span>
+          <div>
+            <h3 class="font-cute text-2xl text-slate-800">구글 시트 저장 & 모바일 QR 백엔드 연결</h3>
+            <p class="text-xs text-slate-500">별도 서버 없이 선생님의 구글 스프레드시트에 난수표를 안전하게 고정해요!</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeSheetsModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-lg">
+          ✕
+        </button>
+      </div>
+
+      <!-- 1. 웹 앱 URL 입력 -->
+      <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 space-y-2.5">
+        <label for="apps-script-url-input" class="block text-sm font-bold text-emerald-900">
+          🔗 Google Apps Script 웹 앱 URL (끝이 <code class="bg-white px-1.5 py-0.5 rounded text-emerald-700">/exec</code> 인 주소)
+        </label>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input id="apps-script-url-input" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="flex-1 px-3.5 py-2.5 rounded-xl border-2 border-emerald-200 focus:border-emerald-500 focus:outline-none text-xs sm:text-sm bg-white" />
+          <button type="button" onclick="saveAppsScriptUrl()" class="btn-jelly px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shrink-0">
+            연결 저장 & QR 생성
+          </button>
+        </div>
+        <p class="text-[11px] text-emerald-800 leading-relaxed">
+          ✨ 주소를 연결하면 <b>QR코드가 구글이 직접 띄우는 학생 전용 돌림판 사이트</b>로 바뀌어 아이들 핸드폰에서도 100% 접속됩니다!
+        </p>
+      </div>
+
+      <!-- 2. Apps Script 백엔드 코드 복사 -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs sm:text-sm font-bold text-slate-700">
+            📜 구글 시트 [확장 프로그램 → Apps Script]에 붙여넣을 백엔드 코드
+          </span>
+          <button type="button" onclick="copyAppsScriptCode()" class="btn-jelly px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold">
+            📋 백엔드 코드 전체 복사
+          </button>
+        </div>
+        <pre id="apps-script-code-preview" class="bg-slate-900 text-emerald-300 p-3.5 rounded-2xl text-[11px] leading-relaxed max-h-44 overflow-y-auto font-mono select-all"></pre>
+        <ol class="text-xs text-slate-600 list-decimal list-inside space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <li>새 구글 스프레드시트를 열고 상단 메뉴 <b>[확장 프로그램] → [Apps Script]</b>를 클릭합니다.</li>
+          <li>기존 코드를 모두 지우고 위 <b>[백엔드 코드 전체 복사]</b> 내용을 붙여넣은 뒤 저장(Ctrl+S)합니다.</li>
+          <li>우측 상단 <b>[배포] → [새 배포] → 유형: [웹 앱]</b>, 액세스 권한을 <b>[모든 사용자]</b>로 설정 후 배포합니다.</li>
+          <li>생성된 <b>웹 앱 URL(<code>.../exec</code>)</b>을 복사해 위 입력칸에 붙여넣으면 끝!</li>
+        </ol>
+      </div>
+
+      <!-- 3. 수동 복사 / CSV 백업 -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+        <span class="text-xs text-slate-500">스크립트 없이 직접 시트에 붙여넣으려면?</span>
+        <div class="flex gap-2">
+          <button type="button" onclick="copyTableForSheets()" class="btn-jelly px-3.5 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs">
+            📋 시트 붙여넣기용 복사
+          </button>
+          <button type="button" onclick="downloadCSV()" class="btn-jelly px-3.5 py-2 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold text-xs">
+            💾 CSV 파일 저장
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       애플리케이션 핵심 로직 (단일 파일 통합 스크립트)
+  ========================================================== -->
+  <script>
+    // 0. 공식 마스코트 '수호천사 뀽' 벡터 일러스트 SVG 생성기 (구름 날개 + 별 천사 링 + 별사탕 지팡이)
+    function getKkyungMascotSVG(className = "w-full h-full", pxSize = 140) {
+      return `
+        <svg viewBox="0 0 140 140" width="${pxSize}" height="${pxSize}" class="${className}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="70" cy="74" r="56" fill="#FEF3C7" opacity="0.55" />
+          <circle cx="70" cy="74" r="44" fill="#FCE7F3" opacity="0.45" />
+          <path d="M44 74 C24 62, 10 72, 16 86 C10 94, 18 106, 30 103 C34 111, 46 109, 50 99 Z"
+                fill="#FFFFFF" stroke="#F9A8D4" stroke-width="2.6" stroke-linejoin="round" />
+          <path d="M42 80 C28 73, 20 80, 24 89" fill="none" stroke="#FBCFE8" stroke-width="2" stroke-linecap="round" />
+          <path d="M96 74 C116 62, 130 72, 124 86 C130 94, 122 106, 110 103 C106 111, 94 109, 90 99 Z"
+                fill="#FFFFFF" stroke="#F9A8D4" stroke-width="2.6" stroke-linejoin="round" />
+          <path d="M98 80 C112 73, 120 80, 116 89" fill="none" stroke="#FBCFE8" stroke-width="2" stroke-linecap="round" />
+          <ellipse cx="70" cy="21" rx="22" ry="6.5" fill="none" stroke="#F59E0B" stroke-width="3" />
+          <ellipse cx="70" cy="21" rx="22" ry="6.5" fill="none" stroke="#FDE68A" stroke-width="1.5" />
+          <polygon points="70,8 73,15 81,15 75,20 77,27 70,23 63,27 65,20 59,15 67,15"
+                   fill="#FDE047" stroke="#F59E0B" stroke-width="1.6" stroke-linejoin="round" />
+          <circle cx="70" cy="58" r="28" fill="#DDD6FE" stroke="#8B5CF6" stroke-width="2.2" />
+          <path d="M47 84 C47 76, 93 76, 93 84 L99 116 C99 121, 41 121, 41 116 Z"
+                fill="#E0F2FE" stroke="#38BDF8" stroke-width="2.3" stroke-linejoin="round" />
+          <path d="M56 80 L70 118 L84 80 Z" fill="#FFFFFF" />
+          <polygon points="70,85 72,89 76,89 73,92 74,96 70,94 66,96 67,92 64,89 68,89"
+                   fill="#FBBF24" stroke="#D97706" stroke-width="1" />
+          <ellipse cx="70" cy="61" rx="23" ry="20" fill="#FFE8DC" stroke="#FDBA74" stroke-width="1.8" />
+          <path d="M46 57 C46 39, 94 39, 94 57 C89 51, 83 51, 79 56 C75 49, 67 49, 63 56 C58 50, 51 51, 46 57 Z"
+                fill="#E9D5FF" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round" />
+          <polygon points="88,45 90,49 94,49 91,52 92,56 88,53 84,56 85,52 82,49 86,49"
+                   fill="#FDE047" stroke="#D97706" stroke-width="1.2" />
+          <ellipse cx="60" cy="61" rx="3.6" ry="4.4" fill="#3B2F4A" />
+          <circle cx="58.8" cy="59.4" r="1.4" fill="#FFFFFF" />
+          <circle cx="61.2" cy="62.2" r="0.8" fill="#FFFFFF" />
+          <ellipse cx="80" cy="61" rx="3.6" ry="4.4" fill="#3B2F4A" />
+          <circle cx="78.8" cy="59.4" r="1.4" fill="#FFFFFF" />
+          <circle cx="81.2" cy="62.2" r="0.8" fill="#FFFFFF" />
+          <ellipse cx="53" cy="66.5" rx="4.2" ry="2.4" fill="#FDA4AF" opacity="0.75" />
+          <ellipse cx="87" cy="66.5" rx="4.2" ry="2.4" fill="#FDA4AF" opacity="0.75" />
+          <path d="M66.5 67.5 Q70 71.5 73.5 67.5" fill="none" stroke="#9F1239" stroke-width="2" stroke-linecap="round" />
+          <line x1="92" y1="106" x2="115" y2="66" stroke="#F59E0B" stroke-width="3.5" stroke-linecap="round" />
+          <circle cx="92" cy="96" r="5" fill="#FFE8DC" stroke="#FDBA74" stroke-width="1.6" />
+          <polygon points="116,52 119.5,60 128,60 121,65 123.5,73 116,68 108.5,73 111,65 104,60 112.5,60"
+                   fill="#F472B6" stroke="#DB2777" stroke-width="1.6" stroke-linejoin="round" />
+          <circle cx="127" cy="48" r="2" fill="#FBBF24" />
+          <circle cx="104" cy="48" r="1.6" fill="#38BDF8" />
+          <circle cx="131" cy="70" r="1.7" fill="#F472B6" />
+        </svg>`;
+    }
+
+    const KKYUNG_CHEER_QUOTES = [
+      "비밀은 꼭 지켜야 해 뀽! 친구가 눈치채지 못하게 살금살금 도와주자 뀽! 🤫",
+      "착한 일을 할 때마다 밤하늘 별자리가 반짝반짝 채워질 거야 뀽! ✨",
+      "친구 이름을 잊어버렸다면 별명 상자를 꾹 눌러봐 뀽! 1초 비밀 마법이 열려! 🪄",
+      "선생님이랑 1학년 천사들 모두 뀽이가 구름 날개로 응원하고 있어 뀽! 💖",
+      "고운 말 한마디, 작은 배려 하나가 최고의 수호천사 선물이야 뀽! 🌟"
+    ];
+    let kkyungQuoteIdx = 0;
+
+    window.pokeKkyungMascot = function() {
+      playPeekSound();
+      const bubble = document.getElementById("kkyung-speech-bubble");
+      if (bubble) {
+        const msg = KKYUNG_CHEER_QUOTES[kkyungQuoteIdx % KKYUNG_CHEER_QUOTES.length];
+        kkyungQuoteIdx += 1;
+        bubble.innerHTML = msg;
+        bubble.classList.remove("animate-pop");
+        void bubble.offsetWidth;
+        bubble.classList.add("animate-pop");
+      }
+    };
+
+    // 1. 1학년 눈높이에 맞춘 아기자기한 별명 사전 (40종)
+    const CUTE_NICKNAMES = [
+      { nickname: "작은 사슴", emoji: "🦌" },
+      { nickname: "아기 다람쥐", emoji: "🐿️" },
+      { nickname: "솜사탕 토끼", emoji: "🐰" },
+      { nickname: "반짝 아기별", emoji: "⭐" },
+      { nickname: "동글 아기곰", emoji: "🐻" },
+      { nickname: "푸른 아기고래", emoji: "🐳" },
+      { nickname: "노란 병아리", emoji: "🐤" },
+      { nickname: "딸기 케이크", emoji: "🍓" },
+      { nickname: "무지개 구름", emoji: "🌈" },
+      { nickname: "수줍은 판다", emoji: "🐼" },
+      { nickname: "날쌘 돌고래", emoji: "🐬" },
+      { nickname: "포근한 양", emoji: "🐑" },
+      { nickname: "달콤한 꿀벌", emoji: "🐝" },
+      { nickname: "초록 아기거북", emoji: "🐢" },
+      { nickname: "웃는 해바라기", emoji: "🌻" },
+      { nickname: "씩씩한 아기사자", emoji: "🦁" },
+      { nickname: "말랑 푸딩", emoji: "🍮" },
+      { nickname: "귀여운 펭귄", emoji: "🐧" },
+      { nickname: "분홍 플라밍고", emoji: "🦩" },
+      { nickname: "요정 나비", emoji: "🦋" },
+      { nickname: "작은 여우", emoji: "🦊" },
+      { nickname: "통통 수달", emoji: "🦦" },
+      { nickname: "하얀 눈사람", emoji: "⛄" },
+      { nickname: "새콤 레몬", emoji: "🍋" },
+      { nickname: "반짝 보석", emoji: "💎" },
+      { nickname: "아기 코알라", emoji: "🐨" },
+      { nickname: "도토리 요정", emoji: "🌰" },
+      { nickname: "파란 파랑새", emoji: "🐦" },
+      { nickname: "복숭아 젤리", emoji: "🍑" },
+      { nickname: "꿈꾸는 초승달", emoji: "🌙" },
+      { nickname: "꼬마 우주선", emoji: "🚀" },
+      { nickname: "사랑스런 강아지", emoji: "🐶" },
+      { nickname: "야옹 아기고양이", emoji: "🐱" },
+      { nickname: "초코 쿠키", emoji: "🍪" },
+      { nickname: "네잎 클로버", emoji: "🍀" },
+      { nickname: "빨간 무당벌레", emoji: "🐞" },
+      { nickname: "아기 유니콘", emoji: "🦄" },
+      { nickname: "포도 알사탕", emoji: "🍇" },
+      { nickname: "햇살 민들레", emoji: "🌼" },
+      { nickname: "꼬마 눈토끼", emoji: "🐇" }
+    ];
+
+    // 2. 별자리 말판 앵커 데이터 (10개 / 15개 / 20개 등간격 보간 지원)
+    const CONSTELLATION_KEYS = ["crown", "heart", "rabbit", "shooting", "whale", "butterfly"];
+    const CONSTELLATIONS = {
+      crown: {
+        title: "👑 반짝반짝 왕관 별자리",
+        anchors: [
+          { x: 42, y: 160 }, { x: 74, y: 62 }, { x: 132, y: 122 }, { x: 210, y: 38 },
+          { x: 288, y: 122 }, { x: 346, y: 62 }, { x: 378, y: 160 }, { x: 210, y: 176 },
+          { x: 84, y: 166 }
+        ]
+      },
+      heart: {
+        title: "💖 두근두근 하트 별자리",
+        anchors: [
+          { x: 192, y: 176 }, { x: 118, y: 134 }, { x: 70, y: 84 }, { x: 92, y: 38 },
+          { x: 158, y: 36 }, { x: 210, y: 76 }, { x: 262, y: 36 }, { x: 328, y: 38 },
+          { x: 350, y: 84 }, { x: 302, y: 134 }, { x: 228, y: 176 }
+        ]
+      },
+      rabbit: {
+        title: "🐰 깡총깡총 아기토끼 별자리",
+        anchors: [
+          { x: 56, y: 166 }, { x: 116, y: 130 }, { x: 174, y: 156 }, { x: 232, y: 116 },
+          { x: 256, y: 34 }, { x: 284, y: 94 }, { x: 318, y: 36 }, { x: 326, y: 105 },
+          { x: 368, y: 132 }, { x: 305, y: 172 }
+        ]
+      },
+      shooting: {
+        title: "🌠 소원성취 별똥별 자리",
+        anchors: [
+          { x: 36, y: 168 }, { x: 115, y: 135 }, { x: 195, y: 102 }, { x: 278, y: 68 },
+          { x: 305, y: 32 }, { x: 326, y: 74 }, { x: 376, y: 82 }, { x: 336, y: 114 },
+          { x: 352, y: 164 }, { x: 304, y: 136 }, { x: 262, y: 166 }, { x: 276, y: 116 }
+        ]
+      },
+      whale: {
+        title: "🐳 파란바다 아기고래 별자리",
+        anchors: [
+          { x: 44, y: 84 }, { x: 78, y: 118 }, { x: 52, y: 150 }, { x: 112, y: 132 },
+          { x: 175, y: 168 }, { x: 285, y: 166 }, { x: 365, y: 132 }, { x: 348, y: 78 },
+          { x: 255, y: 66 }, { x: 235, y: 32 }, { x: 215, y: 68 }, { x: 132, y: 104 }
+        ]
+      },
+      butterfly: {
+        title: "🦋 팔랑팔랑 무지개 나비 별자리",
+        anchors: [
+          { x: 190, y: 56 }, { x: 132, y: 34 }, { x: 66, y: 76 }, { x: 120, y: 118 },
+          { x: 84, y: 168 }, { x: 164, y: 176 }, { x: 210, y: 136 }, { x: 256, y: 176 },
+          { x: 336, y: 168 }, { x: 300, y: 118 }, { x: 354, y: 76 }, { x: 288, y: 34 },
+          { x: 230, y: 56 }
+        ]
+      }
+    };
+
+    // 3. Google Apps Script 백엔드 + 학생 전용 샬랄라 돌림판 웹 앱 통합 소스코드
+    // (HTML 파서가 오해하지 않도록 모든 '<' 문자를 '\x3C'로 안전하게 인코딩)
+    const APPS_SCRIPT_CODE = [
+      "/**",
+      " * 우리 반 수호천사 마니또 게임 - Google Apps Script 백엔드 & 모바일 학생 돌림판",
+      " * 1) 확장 프로그램 > Apps Script 에 붙여넣고 저장",
+      " * 2) 배포 > 새 배포 > 웹 앱 (액세스 권한: 모든 사용자)",
+      " */",
+      "function doGet(e) {",
+      "  var params = (e && e.parameter) || {};",
+      "  var room = params.room || 'CLASS1';",
+      "  if (params.action === 'get') {",
+      "    return ContentService.createTextOutput(JSON.stringify(getRoomData(room)))",
+      "      .setMimeType(ContentService.MimeType.JSON);",
+      "  }",
+      "  var html = buildStudentPageHtml(room);",
+      "  return HtmlService.createHtmlOutput(html)",
+      "    .setTitle('우리 반 수호천사 돌림판 👼')",
+      "    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')",
+      "    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);",
+      "}",
+      "",
+      "function doPost(e) {",
+      "  var lock = LockService.getScriptLock();",
+      "  lock.waitLock(10000);",
+      "  try {",
+      "    var data = JSON.parse(e.postData.contents);",
+      "    var sheet = getOrCreateSheet(data.room || 'CLASS1');",
+      "    if (data.action === 'saveAll') {",
+      "      sheet.clear();",
+      "      sheet.appendRow(['번호', '수호천사', '도와줄친구', '별명', '이모지', '뽑기완료', '난수표회차', '업데이트시각']);",
+      "      var now = new Date().toLocaleString('ko-KR');",
+      "      (data.assignments || []).forEach(function(item, idx) {",
+      "        sheet.appendRow([idx + 1, item.angel, item.target, item.nickname, item.emoji, item.drawn ? '완료' : '대기', data.round || 1, now]);",
+      "      });",
+      "      return jsonResponse({ ok: true });",
+      "    }",
+      "    if (data.action === 'markDrawn') {",
+      "      var res = markDrawnInSheet(data.room || 'CLASS1', data.angel);",
+      "      return jsonResponse(res);",
+      "    }",
+      "    if (data.action === 'clearAll') {",
+      "      sheet.clear();",
+      "      sheet.appendRow(['번호', '수호천사', '도와줄친구', '별명', '이모지', '뽑기완료', '난수표회차', '업데이트시각']);",
+      "      return jsonResponse({ ok: true });",
+      "    }",
+      "    return jsonResponse({ ok: false, error: 'unknown_action' });",
+      "  } finally {",
+      "    lock.releaseLock();",
+      "  }",
+      "}",
+      "",
+      "function getOrCreateSheet(room) {",
+      "  var ss = SpreadsheetApp.getActiveSpreadsheet();",
+      "  var name = '마니또_' + String(room).replace(/[^a-zA-Z0-9가-힣_-]/g, '');",
+      "  var sheet = ss.getSheetByName(name);",
+      "  if (!sheet) sheet = ss.insertSheet(name);",
+      "  return sheet;",
+      "}",
+      "",
+      "function getRoomData(room) {",
+      "  var sheet = getOrCreateSheet(room);",
+      "  var values = sheet.getDataRange().getValues();",
+      "  var list = [];",
+      "  var round = 1;",
+      "  for (var i = 1; i \x3C values.length; i++) {",
+      "    if (!values[i][1]) continue;",
+      "    round = Number(values[i][6]) || 1;",
+      "    list.push({",
+      "      angel: String(values[i][1]),",
+      "      target: String(values[i][2]),",
+      "      nickname: String(values[i][3]),",
+      "      emoji: String(values[i][4] || '👼'),",
+      "      drawn: values[i][5] === '완료'",
+      "    });",
+      "  }",
+      "  return { ok: true, room: room, round: round, assignments: list };",
+      "}",
+      "",
+      "function markDrawnInSheet(room, angelName) {",
+      "  var lock = LockService.getScriptLock();",
+      "  lock.waitLock(10000);",
+      "  try {",
+      "    var sheet = getOrCreateSheet(room);",
+      "    var values = sheet.getDataRange().getValues();",
+      "    var now = new Date().toLocaleString('ko-KR');",
+      "    for (var i = 1; i \x3C values.length; i++) {",
+      "      if (String(values[i][1]).trim() === String(angelName).trim()) {",
+      "        sheet.getRange(i + 1, 6).setValue('완료');",
+      "        sheet.getRange(i + 1, 8).setValue(now);",
+      "        return { ok: true };",
+      "      }",
+      "    }",
+      "    return { ok: false, error: 'not_found' };",
+      "  } finally {",
+      "    lock.releaseLock();",
+      "  }",
+      "}",
+      "",
+      "function jsonResponse(obj) {",
+      "  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);",
+      "}",
+      "",
+      "function buildStudentPageHtml(room) {",
+      "  return [",
+      "    '\\x3C!DOCTYPE html>\\x3Chtml lang=\"ko\">\\x3Chead>\\x3Cmeta charset=\"UTF-8\">',",
+      "    '\\x3Cstyle>',",
+      "    'body{font-family:sans-serif;background:linear-gradient(135deg,#fffbeb,#fce7f3,#e0f2fe);margin:0;padding:16px;min-height:100vh;display:flex;align-items:center;justify-content:center;color:#334155}',",
+      "    '.card{background:#fff;border:4px solid #fde68a;border-radius:28px;max-width:420px;width:100%;padding:24px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.08)}',",
+      "    'h1{font-size:22px;margin:8px 0 4px}p{font-size:13px;color:#64748b;margin:0 0 14px}',",
+      "    'input{width:85%;padding:12px;border:2px solid #fcd34d;border-radius:16px;font-size:18px;font-weight:bold;text-align:center;margin-bottom:10px}',",
+      "    '.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-height:120px;overflow-y:auto;padding:8px;background:#f8fafc;border-radius:16px;margin-bottom:12px}',",
+    "    '.chip{border:1px solid #cbd5e1;background:#fff;padding:6px 12px;border-radius:999px;font-size:14px;font-weight:bold;cursor:pointer}',",
+    "    '.chip.done{background:#ecfdf5;color:#059669;border-color:#a7f3d0}',",
+    "    '.slotbox{background:linear-gradient(180deg,#fcd34d,#f9a8d4,#fcd34d);padding:10px;border-radius:24px;border:3px solid #f59e0b;max-width:280px;margin:0 auto}',",
+    "    '.slotwin{position:relative;height:168px;background:#fffbeb;border-radius:18px;overflow:hidden;border:2px solid #f59e0b}',",
+    "    '.slotfadeT{position:absolute;top:0;left:0;right:0;height:24px;background:linear-gradient(180deg,rgba(254,243,199,.95),transparent);z-index:2;pointer-events:none}',",
+    "    '.slotfadeB{position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(0deg,rgba(254,243,199,.95),transparent);z-index:2;pointer-events:none}',",
+    "    '.slotguide{position:absolute;left:8px;right:8px;top:16px;height:136px;border:2px dashed #f472b6;border-radius:16px;z-index:2;pointer-events:none;display:flex;align-items:center;justify-content:space-between;padding:0 4px;color:#ec4899;font-size:13px}',",
+    "    '.slotcard{height:136px;margin-bottom:12px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid #fde68a;background:#fff}',",
+    "    '.btn{width:100%;padding:14px;border:none;border-radius:18px;background:linear-gradient(90deg,#f472b6,#fbbf24);color:#fff;font-size:18px;font-weight:bold;cursor:pointer;margin-top:12px}',",
+    "    '.nickbox{position:relative;background:linear-gradient(135deg,#fef3c7,#fce7f3);border:4px solid #fcd34d;border-radius:24px;padding:28px 16px;margin:14px 0;cursor:pointer;user-select:none}',",
+    "    '.blur{filter:blur(8px);opacity:.2}',",
+    "    '.peek{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center}',",
+    "    '.help{background:#f0f9ff;border:2px solid #bae6fd;border-radius:16px;padding:10px;font-size:12px;text-align:left;color:#0c4a6e;line-height:1.5}',",
+    "    '\\x3C/style>\\x3C/head>\\x3Cbody>\\x3Cdiv class=\"card\">',",
+    "    '\\x3Cdiv style=\"font-size:34px\">👼\\x3C/div>\\x3Ch1>우리 반 수호천사 뽑기\\x3C/h1>',",
+    "    '\\x3Cp id=\"status\">명단을 불러오고 있어요...\\x3C/p>',",
+    "    '\\x3Cdiv id=\"spinView\">',",
+    "    '\\x3Cinput id=\"nameInput\" placeholder=\"내 이름을 누르거나 적어요\">',",
+    "    '\\x3Cdiv id=\"chips\" class=\"chips\">\\x3C/div>',",
+    "    '\\x3Cdiv class=\"slotbox\">\\x3Cdiv class=\"slotwin\">\\x3Cdiv class=\"slotfadeT\">\\x3C/div>\\x3Cdiv class=\"slotfadeB\">\\x3C/div>\\x3Cdiv id=\"slotGuide\" class=\"slotguide\">\\x3Cspan>▶\\x3C/span>\\x3Cspan>◀\\x3C/span>\\x3C/div>\\x3Cdiv id=\"reelStrip\" style=\"padding:0 16px;transform:translate3d(0,16px,0)\">\\x3C/div>\\x3C/div>\\x3C/div>',",
+    "    '\\x3Cdiv id=\"liveMsg\" style=\"font-size:13px;font-weight:bold;color:#db2777;margin-top:8px;min-height:20px\">✨ 이름을 누르고 띠리릭~ 카드 슬롯을 돌려보세요!\\x3C/div>',",
+    "    '\\x3Cbutton id=\"spinBtn\" class=\"btn\" onclick=\"spin()\">🎰 수호천사 카드 슬롯 돌리기!\\x3C/button>',",
+    "    '\\x3C/div>',",
+    "    '\\x3Cdiv id=\"resView\" style=\"display:none\">',",
+    "    '\\x3Ch2 id=\"resTitle\" style=\"font-size:18px\">\\x3C/h2>',",
+    "    '\\x3Cdiv class=\"help\">💡 \\x3Cb>도움말:\\x3C/b> 아래 별명 상자를 누르면 별명이 흐려지면서 \\x3Cb>친구의 진짜 이름이 1초 동안 아주 작게\\x3C/b> 보였다가 다시 별명으로 돌아가요! 계속 눌러볼 수 있어요.\\x3C/div>',",
+    "    '\\x3Cdiv class=\"nickbox\" onclick=\"peek()\">',",
+    "    '\\x3Cdiv id=\"nickLayer\">\\x3Cdiv id=\"resEmoji\" style=\"font-size:52px\">\\x3C/div>\\x3Cdiv id=\"resNick\" style=\"font-size:30px;font-weight:900;margin-top:6px\">\\x3C/div>\\x3Cdiv style=\"font-size:11px;color:#db2777;margin-top:8px\">👆 누르면 친구 이름이 1초 동안 살짝 보여요!\\x3C/div>\\x3C/div>',",
+    "    '\\x3Cdiv id=\"peekLayer\" class=\"peek\">\\x3Cspan style=\"font-size:11px;color:#64748b\">🤫 1초 비밀 이름\\x3C/span>\\x3Cspan id=\"resReal\" style=\"font-size:13px;font-weight:bold;color:#e11d48;background:#fff;padding:3px 10px;border-radius:99px;border:1px solid #fecdd3;margin-top:4px\">\\x3C/span>\\x3C/div>',",
+    "    '\\x3C/div>',",
+    "    '\\x3Cbutton class=\"btn\" style=\"background:#e2e8f0;color:#334155\" onclick=\"back()\">🔙 처음으로\\x3C/button>',",
+    "    '\\x3C/div>\\x3C/div>',",
+    "    '\\x3Cscript>',",
+    "    'var ROOM=' + JSON.stringify(room) + ',LIST=[],SPIN=false,TMR=null;',",
+    "    'var COLS=[\"#FEF3C7\",\"#FCE7F3\",\"#E0F2FE\",\"#DCFCE7\",\"#F3E8FF\",\"#FFEDD5\"];',",
+    "    'function cardHtml(e,n,bg){return \"\\x3Cdiv class=\\\\\"slotcard\\\\\" style=\\\\\"background:\"+bg+\"\\\\\">\\x3Cdiv style=\\\\\"font-size:44px;line-height:1.1\\\\\">\"+e+\"\\x3C/div>\\x3Cdiv style=\\\\\"font-size:20px;font-weight:900;color:#1e293b;margin-top:6px\\\\\">\"+n+\"\\x3C/div>\\x3C/div>\";}',",
+    "    'function drawIdle(){var st=document.getElementById(\"reelStrip\"),g=document.getElementById(\"slotGuide\");if(g){g.style.borderStyle=\"dashed\";g.style.borderColor=\"#f472b6\";}if(st){st.style.filter=\"none\";st.style.transform=\"translate3d(0,16px,0)\";st.innerHTML=cardHtml(\"👼\",\"비밀 수호천사 카드\",\"linear-gradient(135deg,#fef3c7,#fce7f3)\")+cardHtml(\"✨\",\"띠리릭~ 돌려보아요!\",\"#f8fafc\");}}',",
+    "    'function load(){drawIdle();google.script.run.withSuccessHandler(function(r){LIST=(r&&r.assignments)||[];document.getElementById(\"status\").textContent=LIST.length?\"내 이름을 누르고 카드 슬롯을 돌려요!\":\"선생님이 아직 명단을 등록하지 않았어요.\";renderChips();}).withFailureHandler(function(){document.getElementById(\"status\").textContent=\"⚠️ 명단을 불러오지 못했어요. 새로고침해 주세요!\";}).getRoomData(ROOM);}',",
+    "    'function renderChips(){var el=document.getElementById(\"chips\");el.innerHTML=LIST.map(function(a){var s=a.angel.replace(/&/g,\"&amp;\").replace(/\"/g,\"&quot;\").replace(/\\x3C/g,\"&lt;\").replace(/>/g,\"&gt;\");return \"\\x3Cbutton class=\\\\\"chip \"+(a.drawn?\"done\":\"\")+\"\\\\\" data-n=\\\\\"\"+s+\"\\\\\" onclick=\\\\\"pick(this.dataset.n)\\\\\">\"+s+(a.drawn?\" ✓\":\"\")+\"\\x3C/button>\";}).join(\"\");}',",
+    "    'function pick(n){document.getElementById(\"nameInput\").value=n;drawIdle();}',",
+    "    'function spin(){if(SPIN)return;var name=document.getElementById(\"nameInput\").value.trim();var idx=LIST.findIndex(function(a){return a.angel===name;});if(idx===-1){document.getElementById(\"status\").textContent=\"⚠️ 내 이름을 먼저 누르거나 정확히 적어주세요!\";return;}SPIN=true;document.getElementById(\"spinBtn\").disabled=true;var chosen=LIST[idx],st=document.getElementById(\"reelStrip\"),g=document.getElementById(\"slotGuide\"),lm=document.getElementById(\"liveMsg\");var pool=LIST.slice().sort(function(){return Math.random()-0.5;});var cards=[cardHtml(\"👼\",\"비밀 카드 출발!\",\"linear-gradient(135deg,#fef3c7,#fce7f3)\")];var stopIdx=26;for(var i=1;i\\x3CstopIdx+2;i++){if(i===stopIdx){cards.push(cardHtml(chosen.emoji,chosen.nickname,\"linear-gradient(135deg,#fef08a,#fbcfe8)\"));}else if(i%4===0&&i\\x3C22){cards.push(cardHtml(\"❓\",\"띠리릭~ 비밀 카드!\",\"#f1f5f9\"));}else{var p=pool[i%pool.length];cards.push(cardHtml(p.emoji,p.nickname,COLS[i%COLS.length]));}}st.innerHTML=cards.join(\"\");var P=148,targetY=stopIdx*P,t0=performance.now();function step(now){var p=Math.min((now-t0)/3500,1),y=0;if(p\\x3C0.65){var u=p/0.65;y=(targetY-3*P)*(u*u*(3-2*u));st.style.filter=\"blur(2px)\";lm.textContent=\"🎰 띠리릭~ 띠리릭~ 비밀 카드가 돌아가요!\";}else if(p\\x3C0.88){var v=(p-0.65)/0.23;y=(targetY-3*P)+(2.6*P)*(1-Math.pow(1-v,2));st.style.filter=\"none\";lm.textContent=\"💓 두근두근... 과연 어떤 친구 카드가 나올까?!\";}else{var w=(p-0.88)/0.12,from=targetY-0.4*P;y=from+(targetY-from)*(1-Math.pow(1-w,2))+Math.sin(w*Math.PI)*18;st.style.filter=\"none\";lm.textContent=\"🎉 빠밤!! 수호천사 카드가 멈췄어요!\";}st.style.transform=\"translate3d(0,\"+(16-y)+\"px,0)\";if(p\\x3C1)requestAnimationFrame(step);else{st.style.transform=\"translate3d(0,\"+(16-targetY)+\"px,0)\";if(g){g.style.borderStyle=\"solid\";g.style.borderColor=\"#f59e0b\";}SPIN=false;document.getElementById(\"spinBtn\").disabled=false;setTimeout(function(){finish(idx);},750);}}requestAnimationFrame(step);}',",
+    "    'function finish(idx){var item=LIST[idx];item.drawn=true;renderChips();google.script.run.markDrawnInSheet(ROOM,item.angel);document.getElementById(\"spinView\").style.display=\"none\";document.getElementById(\"resView\").style.display=\"block\";document.getElementById(\"resTitle\").textContent=item.angel+\" 천사님이 도와줄 친구는...\";document.getElementById(\"resEmoji\").textContent=item.emoji;document.getElementById(\"resNick\").textContent=item.nickname;document.getElementById(\"resReal\").textContent=item.target;}',",
+    "    'function peek(){var nl=document.getElementById(\"nickLayer\"),pl=document.getElementById(\"peekLayer\");if(TMR)clearTimeout(TMR);nl.classList.add(\"blur\");pl.style.display=\"flex\";TMR=setTimeout(function(){nl.classList.remove(\"blur\");pl.style.display=\"none\";TMR=null;},1000);}',",
+    "    'function back(){document.getElementById(\"resView\").style.display=\"none\";document.getElementById(\"spinView\").style.display=\"block\";drawIdle();}',",
+    "    'load();',",
+    "    '\\x3C/script>\\x3C/body>\\x3C/html>'",
+    "  ].join('');",
+    "}"
+  ].join("\n");
+
+    // 4. 전역 상태 관리
+    const state = {
+      room: "CLASS1",
+      round: 1,
+      assignments: [], // [{ angel, target, nickname, emoji, drawn, constellationKey }]
+      hostSecretMode: true,
+      appsScriptUrl: "",
+      soundEnabled: true,
+      currentTab: "host",
+      isStudentLockedMode: false,
+      currentStudentAssignment: null,
+      isSpinning: false,
+      peekTimer: null,
+      printStarCount: 10,
+      constellationMode: "random",
+      printLayout: "2perPage",
+      pollTimer: null,
+      lastLocalWriteAt: 0
+    };
+
+    let pendingConfirmCallback = null;
+    let audioCtx = null;
+
+    // 5. Web Audio API 귀염뽀짝 효과음 (샬랄라 하프 + 심장박동 + 팡파르)
+    function ensureAudioCtx() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+      }
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume().catch(() => {});
+      }
+    }
+
+    function playTone(freq, duration, type = "sine", volume = 0.12) {
+      if (!state.soundEnabled) return;
+      try {
+        ensureAudioCtx();
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    const SHALALA_NOTES = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 880, 783.99];
+    let shalalaIdx = 0;
+
+    function playTickSound() {
+      const freq = SHALALA_NOTES[shalalaIdx % SHALALA_NOTES.length];
+      shalalaIdx += 1;
+      playTone(freq, 0.08, "triangle", 0.08);
+    }
+
+    function playHeartbeatSound() {
+      playTone(135, 0.11, "sine", 0.16);
+      setTimeout(() => playTone(165, 0.14, "sine", 0.14), 130);
+    }
+
+    function playFanfareSound() {
+      const notes = [523.25, 659.25, 783.99, 1046.5];
+      notes.forEach((n, idx) => {
+        setTimeout(() => playTone(n, 0.28, "sine", 0.14), idx * 110);
+      });
+    }
+
+    function playSlotLandSound() {
+      playTone(587.33, 0.14, "triangle", 0.15);
+      setTimeout(() => playTone(880, 0.34, "triangle", 0.17), 120);
+    }
+
+    function playPeekSound() {
+      playTone(880, 0.09, "sine", 0.09);
+      setTimeout(() => playTone(1174.66, 0.12, "sine", 0.09), 70);
+    }
+
+    window.toggleSound = function() {
+      state.soundEnabled = !state.soundEnabled;
+      document.getElementById("sound-icon").textContent = state.soundEnabled ? "🔊" : "🔇";
+      document.getElementById("sound-label").textContent = state.soundEnabled ? "소리 켜짐" : "소리 꺼짐";
+      if (state.soundEnabled) playPeekSound();
+    };
+
+    // 6. 토스트 및 커스텀 확인 모달 (alert / confirm 대체)
+    let toastTimer = null;
+    function showToast(msg, icon = "👼") {
+      const container = document.getElementById("toast-container");
+      document.getElementById("toast-msg").textContent = msg;
+      document.getElementById("toast-icon").textContent = icon;
+      container.classList.remove("opacity-0", "-translate-y-4");
+      container.classList.add("opacity-100", "translate-y-0");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        container.classList.add("opacity-0", "-translate-y-4");
+        container.classList.remove("opacity-100", "translate-y-0");
+      }, 3200);
+    }
+
+    function openConfirmModal({ emoji, title, desc, okText, onConfirm }) {
+      document.getElementById("confirm-emoji").textContent = emoji || "👼";
+      document.getElementById("confirm-title").textContent = title || "확인해 주세요!";
+      document.getElementById("confirm-desc").textContent = desc || "";
+      document.getElementById("confirm-ok-btn").textContent = okText || "네, 좋아요! ✨";
+      pendingConfirmCallback = onConfirm;
+      const modal = document.getElementById("confirm-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    window.closeConfirmModal = function(confirmed) {
+      const modal = document.getElementById("confirm-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+      if (confirmed && typeof pendingConfirmCallback === "function") {
+        pendingConfirmCallback();
+      }
+      pendingConfirmCallback = null;
+    };
+
+    // 7. 안전 클립보드 복사 유틸
+    function copyTextSafely(text, successMsg) {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        if (ok) {
+          showToast(successMsg, "📋");
+          return;
+        }
+      } catch (e) {}
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+          .then(() => showToast(successMsg, "📋"))
+          .catch(() => showToast("복사에 실패했어요. 직접 선택해서 복사해 주세요!", "⚠️"));
+      }
+    }
+
+    // 8. UTF-8 안전 Base64 인코딩/디코딩 (URL 해시 백업용)
+    function encodePayloadBase64(obj) {
+      try {
+        const json = JSON.stringify(obj);
+        const bytes = new TextEncoder().encode(json);
+        let bin = "";
+        for (let i = 0; i < bytes.length; i++) {
+          bin += String.fromCharCode(bytes[i]);
+        }
+        return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      } catch (e) {
+        return "";
+      }
+    }
+
+    function decodePayloadBase64(str) {
+      try {
+        let b64 = str.replace(/-/g, "+").replace(/_/g, "/");
+        while (b64.length % 4) b64 += "=";
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) {
+          bytes[i] = bin.charCodeAt(i);
+        }
+        return JSON.parse(new TextDecoder().decode(bytes));
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // 9. 탭 전환 및 초기 진입 모드 판별
+    window.switchTab = function(tabName) {
+      if (state.isStudentLockedMode && tabName !== "student") return;
+      state.currentTab = tabName;
+
+      ["host", "student", "print"].forEach((t) => {
+        const view = document.getElementById("view-" + t);
+        const btn = document.getElementById("tab-btn-" + t);
+        if (!view || !btn) return;
+        if (t === tabName) {
+          view.classList.remove("hidden");
+          btn.className = "btn-jelly py-2.5 sm:py-3 px-2 rounded-xl font-cute text-base sm:text-lg flex items-center justify-center gap-1.5 transition-all bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-md";
+        } else {
+          view.classList.add("hidden");
+          btn.className = "btn-jelly py-2.5 sm:py-3 px-2 rounded-xl font-cute text-base sm:text-lg flex items-center justify-center gap-1.5 transition-all text-slate-600 hover:bg-amber-50";
+        }
+      });
+
+      if (tabName === "student") {
+        renderStudentQuickChips();
+        renderSlotIdle();
+      } else if (tabName === "print") {
+        renderPrintCards();
+      } else if (tabName === "host") {
+        renderQRCode();
+      }
+    };
+
+    // 10. 완전순열(Derangement) 난수 배정 알고리즘
+    function createDerangement(names) {
+      const n = names.length;
+      const indices = Array.from({ length: n }, (_, i) => i);
+      for (let i = n - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * i);
+        const temp = indices[i];
+        indices[i] = indices[j];
+        indices[j] = temp;
+      }
+      return indices.map((targetIdx) => names[targetIdx]);
+    }
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function parseStudentNames() {
+      const raw = document.getElementById("student-names-input").value || "";
+      const list = raw
+        .split(/[\n,]+/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+      return Array.from(new Set(list));
+    }
+
+    window.fillSampleStudents = function() {
+      const samples = ["김민준", "이서연", "박도윤", "최지우", "정하준", "강서윤", "조시우", "윤하은", "장예준", "임지아"];
+      document.getElementById("student-names-input").value = samples.join(", ");
+      updateStudentCountLabel();
+      showToast("1학년 예시 명단 10명을 채웠어요! [✨ 마니또 배정하기]를 눌러주세요!", "🐣");
+    };
+
+    function updateStudentCountLabel() {
+      const names = parseStudentNames();
+      document.getElementById("student-count-label").textContent = `현재 ${names.length}명`;
+    }
+
+    window.generateNewAssignments = async function(isReShuffle = false) {
+      const names = parseStudentNames();
+      if (names.length < 2) {
+        showToast("마니또 게임을 하려면 친구 이름이 최소 2명 이상 필요해요!", "⚠️");
+        return;
+      }
+
+      if (isReShuffle) {
+        state.round += 1;
+      }
+
+      const targets = createDerangement(names);
+      const shuffledNicknames = shuffleArray(CUTE_NICKNAMES);
+      const shuffledConstellations = shuffleArray(CONSTELLATION_KEYS);
+
+      state.assignments = names.map((angel, idx) => {
+        const nickObj = shuffledNicknames[idx % shuffledNicknames.length];
+        const suffix = idx >= shuffledNicknames.length ? ` ${Math.floor(idx / shuffledNicknames.length) + 1}` : "";
+        return {
+          angel,
+          target: targets[idx],
+          nickname: nickObj.nickname + suffix,
+          emoji: nickObj.emoji,
+          drawn: false,
+          constellationKey: shuffledConstellations[idx % shuffledConstellations.length]
+        };
+      });
+
+      state.lastLocalWriteAt = Date.now();
+      saveToLocalStorage();
+      renderAllViews();
+      await pushToGoogleSheets(true);
+
+      showToast(
+        isReShuffle
+          ? `난수표 #${state.round}로 새롭게 다시 뽑았어요! 🎲`
+          : `총 ${names.length}명의 수호천사 배정이 완료되었어요! ✨`,
+        "🎉"
+      );
+    };
+
+    window.requestReShuffle = function() {
+      const names = parseStudentNames();
+      if (names.length < 2) {
+        showToast("먼저 명단에 친구 이름을 2명 이상 입력해 주세요!", "⚠️");
+        return;
+      }
+      openConfirmModal({
+        emoji: "🎲",
+        title: "난수표를 초기화하고 다시 뽑을까요?",
+        desc: "기존에 배정된 수호천사 짝꿍과 별명, 돌림판 기록이 모두 초기화되고 완전히 새로운 난수표로 재편성됩니다!",
+        okText: "네, 새로 뽑을게요! 🎲",
+        onConfirm: () => generateNewAssignments(true)
+      });
+    };
+
+    window.requestResetSpinsOnly = function() {
+      if (!state.assignments.length) {
+        showToast("초기화할 배정 명단이 아직 없어요!", "⚠️");
+        return;
+      }
+      openConfirmModal({
+        emoji: "🔄",
+        title: "돌림판 상태만 초기화할까요?",
+        desc: "배정된 마니또 짝꿍과 별명은 그대로 유지하고, 아이들이 돌림판만 다시 돌릴 수 있게 '대기' 상태로 되돌립니다.",
+        okText: "네, 돌림판만 초기화! 🔄",
+        onConfirm: async () => {
+          state.assignments.forEach((a) => (a.drawn = false));
+          state.lastLocalWriteAt = Date.now();
+          saveToLocalStorage();
+          renderAllViews();
+          await pushToGoogleSheets(true);
+          showToast("돌림판 상태가 모두 초기화되었어요!", "🔄");
+        }
+      });
+    };
+
+    window.requestClearAll = function() {
+      openConfirmModal({
+        emoji: "🧹",
+        title: "명단과 구글 시트를 싹 비울까요?",
+        desc: "입력된 학생 명단과 배정된 난수표는 물론, 연결된 구글 시트 내용까지 모두 깨끗하게 초기화됩니다!",
+        okText: "네, 시트까지 싹 비울게요! 🧹",
+        onConfirm: async () => {
+          state.assignments = [];
+          state.round = 1;
+          state.lastLocalWriteAt = Date.now();
+          const nameInput = document.getElementById("student-names-input");
+          if (nameInput) nameInput.value = "";
+          updateStudentCountLabel();
+          saveToLocalStorage();
+          renderAllViews();
+          await pushToGoogleSheets(true);
+          showToast("명단과 구글 시트가 모두 깨끗하게 비워졌어요 뀽!", "🧹");
+        }
+      });
+    };
+
+    window.toggleHostSecretMode = function() {
+      state.hostSecretMode = !state.hostSecretMode;
+      const btn = document.getElementById("secret-toggle-btn");
+      const icon = document.getElementById("secret-toggle-icon");
+      const txt = document.getElementById("secret-toggle-text");
+      if (state.hostSecretMode) {
+        btn.className = "btn-jelly px-3.5 py-2 rounded-xl bg-slate-800 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-xs";
+        icon.textContent = "🙈";
+        txt.textContent = "대상 이름 가리기 (비밀 모드 ON)";
+      } else {
+        btn.className = "btn-jelly px-3.5 py-2 rounded-xl bg-rose-500 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-xs";
+        icon.textContent = "👀";
+        txt.textContent = "대상 이름 보이기 (비밀 모드 OFF)";
+      }
+      renderHostTable();
+    };
+
+    // 11. 선생님 화면 테이블 렌더링
+    function renderHostTable() {
+      const tbody = document.getElementById("host-table-body");
+      const roundBadge = document.getElementById("draw-round-badge");
+      const counter = document.getElementById("progress-counter");
+      if (!tbody) return;
+
+      roundBadge.textContent = `난수표 #${state.round}`;
+      const doneCount = state.assignments.filter((a) => a.drawn).length;
+      counter.textContent = `뽑기 완료: ${doneCount} / ${state.assignments.length}명`;
+
+      if (!state.assignments.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-10 text-center text-slate-400 text-sm">
+              위 입력칸에 우리 반 친구들 이름을 적고 <b>[✨ 마니또 배정하기]</b> 버튼을 눌러주세요!
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = state.assignments.map((item, idx) => {
+        const maskedTarget = state.hostSecretMode
+          ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-400 text-xs font-bold">🔒 비밀 가림</span>`
+          : `<span class="font-bold text-rose-600">${escapeHtml(item.target)}</span>`;
+
+        const statusBadge = item.drawn
+          ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">✅ 뽑기 완료</span>`
+          : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">⏳ 대기 중</span>`;
+
+        return `
+          <tr class="hover:bg-amber-50/40 transition-colors">
+            <td class="py-3 px-4 text-slate-500 font-bold text-xs sm:text-sm">${idx + 1}</td>
+            <td class="py-3 px-4 font-bold text-slate-800">${escapeHtml(item.angel)}</td>
+            <td class="py-3 px-4">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-50 border border-pink-200 text-pink-800 font-bold text-xs sm:text-sm">
+                <span>${item.emoji}</span>
+                <span>${escapeHtml(item.nickname)}</span>
+              </span>
+            </td>
+            <td class="py-3 px-4">${maskedTarget}</td>
+            <td class="py-3 px-4 text-center">${statusBadge}</td>
+          </tr>`;
+      }).join("");
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // 12. QR코드 생성
+    function getStudentJoinUrl() {
+      if (state.appsScriptUrl && /^https:\/\/script\.google\.com\//i.test(state.appsScriptUrl)) {
+        const sep = state.appsScriptUrl.includes("?") ? "&" : "?";
+        return `${state.appsScriptUrl}${sep}room=${encodeURIComponent(state.room)}&role=student`;
+      }
+
+      const base = window.location.href.split("#")[0].split("?")[0];
+      const payload = encodePayloadBase64({
+        room: state.room,
+        round: state.round,
+        assignments: state.assignments.map((a) => ({
+          angel: a.angel,
+          target: a.target,
+          nickname: a.nickname,
+          emoji: a.emoji,
+          drawn: a.drawn
+        }))
+      });
+
+      return `${base}?room=${encodeURIComponent(state.room)}&role=student${payload ? `#d=${payload}` : ""}`;
+    }
+
+    function isSandboxOrLocalUrl() {
+      const href = window.location.href;
+      return (
+        href.startsWith("about:") ||
+        href.startsWith("blob:") ||
+        href.startsWith("file:") ||
+        href.includes("googleusercontent.com")
+      );
+    }
+
+    function renderQRCode() {
+      const box = document.getElementById("qrcode-box");
+      const preview = document.getElementById("join-url-preview");
+      const warning = document.getElementById("sandbox-warning-banner");
+      if (!box) return;
+
+      const joinUrl = getStudentJoinUrl();
+      if (preview) preview.textContent = joinUrl;
+
+      if (warning) {
+        if (isSandboxOrLocalUrl() && !state.appsScriptUrl) {
+          warning.classList.remove("hidden");
+        } else {
+          warning.classList.add("hidden");
+        }
+      }
+
+      box.innerHTML = "";
+      try {
+        if (typeof QRCode !== "undefined" && joinUrl.length <= 900) {
+          new QRCode(box, {
+            text: joinUrl,
+            width: 184,
+            height: 184,
+            colorDark: "#1e293b",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.L
+          });
+          return;
+        }
+      } catch (e) {}
+
+      const img = document.createElement("img");
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=190x190&ecc=L&data=${encodeURIComponent(joinUrl)}`;
+      img.alt = "수호천사 접속 QR코드";
+      img.className = "w-[184px] h-[184px] rounded-xl";
+      img.onerror = () => {
+        box.innerHTML = `<div class="text-xs text-slate-500 p-4">QR 이미지를 불러오지 못했어요.<br/>아래 <b>[접속 링크 복사]</b>를 이용해 주세요!</div>`;
+      };
+      box.appendChild(img);
+    }
+
+    window.copyJoinUrl = function() {
+      copyTextSafely(getStudentJoinUrl(), "아이들 접속 링크가 복사되었어요!");
+    };
+
+    // 13. 아이들 화면: 빠른 이름 칩 & 777 스타일 1칸 비밀 카드 슬롯 & 1초 살짝 보기
+    const SLOT_CARD_COLORS = [
+      "linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)",
+      "linear-gradient(135deg, #FCE7F3 0%, #FBCFE8 100%)",
+      "linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%)",
+      "linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%)",
+      "linear-gradient(135deg, #F3E8FF 0%, #DDD6FE 100%)",
+      "linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%)"
+    ];
+
+    function buildSlotCardHTML(emoji, label, bgStyle, isWinner = false) {
+      const borderClass = isWinner
+        ? "border-4 border-amber-400 shadow-md"
+        : "border-2 border-amber-200/80 shadow-2xs";
+      return `
+        <div class="h-[148px] mb-[12px] rounded-2xl ${borderClass} flex flex-col items-center justify-center px-3 select-none" style="background: ${bgStyle};">
+          <div class="text-5xl sm:text-6xl leading-none drop-shadow-2xs">${emoji}</div>
+          <div class="font-cute text-2xl sm:text-3xl text-slate-800 mt-2 tracking-wide truncate max-w-full">${escapeHtml(label)}</div>
+        </div>`;
+    }
+
+    function renderSlotIdle() {
+      const strip = document.getElementById("slot-reel-strip");
+      const guide = document.getElementById("slot-center-guide");
+      if (!strip) return;
+
+      strip.classList.remove("slot-reel-blur");
+      strip.style.transform = "translate3d(0, 20px, 0)";
+      if (guide) {
+        guide.className = "pointer-events-none absolute inset-x-2 top-1/2 -translate-y-1/2 h-[148px] rounded-2xl border-2 border-dashed border-pink-300/90 z-10 flex items-center justify-between px-1.5 transition-all duration-200";
+      }
+
+      strip.innerHTML =
+        buildSlotCardHTML("👼", "비밀 수호천사 카드", "linear-gradient(135deg, #FEF3C7 0%, #FCE7F3 100%)") +
+        buildSlotCardHTML("✨", "띠리릭~ 돌려보아요!", "linear-gradient(135deg, #E0F2FE 0%, #F3E8FF 100%)");
+    }
+
+    function renderStudentQuickChips() {
+      const container = document.getElementById("student-quick-chips");
+      if (!container) return;
+
+      if (!state.assignments.length) {
+        container.innerHTML = `<span class="text-xs text-slate-400 py-2">선생님이 아직 우리 반 명단을 준비하고 있어요 👼</span>`;
+        return;
+      }
+
+      const typed = (document.getElementById("student-name-input")?.value || "").trim();
+
+      container.innerHTML = state.assignments.map((item) => {
+        const isSelected = typed && item.angel === typed;
+        let chipStyle = item.drawn
+          ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+          : "bg-white hover:bg-amber-50 text-slate-700 border-slate-200";
+        if (isSelected) {
+          chipStyle += " ring-3 ring-pink-300 border-pink-400";
+        }
+        return `
+          <button type="button" data-angel="${escapeHtml(item.angel)}" onclick="selectStudentChip(this.dataset.angel)" class="btn-jelly px-3.5 py-2 rounded-full border-2 text-sm sm:text-base font-bold shadow-2xs ${chipStyle}">
+            ${escapeHtml(item.angel)}${item.drawn ? " ✓" : ""}
+          </button>`;
+      }).join("");
+    }
+
+    window.selectStudentChip = function(name) {
+      const input = document.getElementById("student-name-input");
+      if (input) input.value = name;
+      const liveStatus = document.getElementById("wheel-live-status");
+      if (liveStatus) {
+        liveStatus.textContent = `🌟 ${name} 천사님 준비 완료! 카드 슬롯 버튼을 꾹 눌러요 뀽!`;
+      }
+      renderStudentQuickChips();
+      renderSlotIdle();
+      playTickSound();
+    };
+
+    // 777 스타일 1칸 카드 슬롯: 띠리릭~ 돌아가다가 블라인드 후 빠밤! 정중앙 안착
+    window.spinWheel = function() {
+      if (state.isSpinning) return;
+
+      const input = document.getElementById("student-name-input");
+      const typedName = (input ? input.value : "").trim();
+
+      if (!state.assignments.length) {
+        showToast("선생님이 아직 마니또 배정을 시작하지 않았어요!", "👼");
+        return;
+      }
+
+      const foundIndex = state.assignments.findIndex(
+        (a) => a.angel.replace(/\s+/g, "") === typedName.replace(/\s+/g, "")
+      );
+
+      if (foundIndex === -1) {
+        showToast("내 이름을 아래 버튼에서 누르거나 정확히 적어주세요!", "🙋");
+        return;
+      }
+
+      const chosen = state.assignments[foundIndex];
+      state.isSpinning = true;
+
+      const spinBtn = document.getElementById("spin-wheel-btn");
+      const strip = document.getElementById("slot-reel-strip");
+      const guide = document.getElementById("slot-center-guide");
+      const liveStatus = document.getElementById("wheel-live-status");
+      if (spinBtn) spinBtn.disabled = true;
+
+      ensureAudioCtx();
+
+      // 매번 무작위 순서의 카드 스트립을 구성하여 위치가 특정되지 않도록 블라인드 처리
+      const decoyPool = shuffleArray(
+        state.assignments.length >= 4 ? state.assignments : CUTE_NICKNAMES.slice(0, 12)
+      );
+      const stopIdx = 28;
+      const cardsMarkup = [];
+
+      // 0번 카드: 출발 카드
+      cardsMarkup.push(
+        buildSlotCardHTML("👼", "비밀 카드 출발!", "linear-gradient(135deg, #FEF3C7 0%, #FCE7F3 100%)")
+      );
+
+      for (let i = 1; i <= stopIdx + 2; i++) {
+        if (i === stopIdx) {
+          // 최종 당첨 카드 (원래 결과 카드와 자연스럽게 이어지도록 표시)
+          cardsMarkup.push(
+            buildSlotCardHTML(
+              chosen.emoji,
+              chosen.nickname,
+              "linear-gradient(135deg, #FEF08A 0%, #FBCFE8 55%, #DDD6FE 100%)",
+              true
+            )
+          );
+        } else if (i % 4 === 0 && i < stopIdx - 4) {
+          // 중간 블라인드 미스터리 카드
+          cardsMarkup.push(
+            buildSlotCardHTML("❓", "띠리릭~ 비밀 카드!", "linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%)")
+          );
+        } else {
+          const item = decoyPool[i % decoyPool.length];
+          cardsMarkup.push(
+            buildSlotCardHTML(item.emoji, item.nickname, SLOT_CARD_COLORS[i % SLOT_CARD_COLORS.length])
+          );
+        }
+      }
+
+      if (strip) {
+        strip.innerHTML = cardsMarkup.join("");
+        strip.style.transform = "translate3d(0, 20px, 0)";
+      }
+      if (guide) {
+        guide.className = "pointer-events-none absolute inset-x-2 top-1/2 -translate-y-1/2 h-[148px] rounded-2xl border-2 border-dashed border-pink-400 z-10 flex items-center justify-between px-1.5 transition-all duration-200";
+      }
+
+      const CARD_PITCH = 160; // 148px 카드 + 12px 간격
+      const targetOffset = stopIdx * CARD_PITCH;
+      const phase1End = (stopIdx - 3) * CARD_PITCH;
+      const duration = 3600;
+      const startTime = performance.now();
+      let lastCardStep = 0;
+      let playedLandSound = false;
+
+      function animateSlot(now) {
+        const elapsed = now - startTime;
+        const p = Math.min(elapsed / duration, 1);
+        let currentOffset = 0;
+
+        if (p < 0.65) {
+          // 1단계: 띠리릭~ 띠리릭~ 블라인드 고속 회전
+          const u = p / 0.65;
+          const smooth = u * u * (3 - 2 * u);
+          currentOffset = phase1End * smooth;
+          if (strip) strip.classList.add("slot-reel-blur");
+          if (liveStatus) liveStatus.textContent = "🎰 띠리릭~ 띠리릭~ 비밀 카드가 돌아가요!";
+        } else if (p < 0.88) {
+          // 2단계: 감속 구간 (한 칸씩 두근두근)
+          const v = (p - 0.65) / 0.23;
+          const slowEase = 1 - Math.pow(1 - v, 2);
+          currentOffset = phase1End + (2.6 * CARD_PITCH) * slowEase;
+          if (strip) strip.classList.remove("slot-reel-blur");
+          if (liveStatus) liveStatus.textContent = "💓 두근두근... 과연 누구의 카드가 멈출까?!";
+        } else {
+          // 3단계: 살짝 지나쳤다가 스프링처럼 찰칵! 빠밤!!
+          const w = (p - 0.88) / 0.12;
+          const fromOffset = targetOffset - 0.4 * CARD_PITCH;
+          const spring = 1 - Math.pow(1 - w, 2);
+          const overshoot = Math.sin(w * Math.PI) * 20;
+          currentOffset = fromOffset + (targetOffset - fromOffset) * spring + overshoot;
+          if (strip) strip.classList.remove("slot-reel-blur");
+          if (liveStatus) liveStatus.textContent = "🎉 빠밤!! 수호천사 카드가 멈췄어요!";
+
+          if (!playedLandSound && w > 0.55) {
+            playedLandSound = true;
+            playSlotLandSound();
+          }
+        }
+
+        if (strip) {
+          strip.style.transform = `translate3d(0, ${20 - currentOffset}px, 0)`;
+        }
+
+        const currentStep = Math.floor(currentOffset / CARD_PITCH);
+        if (currentStep > lastCardStep) {
+          lastCardStep = currentStep;
+          playTickSound();
+        }
+
+        if (p < 1) {
+          requestAnimationFrame(animateSlot);
+        } else {
+          if (strip) {
+            strip.classList.remove("slot-reel-blur");
+            strip.style.transform = `translate3d(0, ${20 - targetOffset}px, 0)`;
+          }
+          if (guide) {
+            guide.className = "pointer-events-none absolute inset-x-2 top-1/2 -translate-y-1/2 h-[148px] rounded-2xl border-4 border-amber-400 shadow-md z-10 flex items-center justify-between px-1.5 transition-all duration-200";
+          }
+          state.isSpinning = false;
+          if (spinBtn) spinBtn.disabled = false;
+
+          // 빠밤! 멈춘 카드를 0.75초간 보여준 뒤 결과 화면으로 자연스럽게 전환
+          setTimeout(() => completeStudentSpin(chosen), 750);
+        }
+      }
+
+      requestAnimationFrame(animateSlot);
+    };
+
+    async function completeStudentSpin(assignment) {
+      assignment.drawn = true;
+      state.currentStudentAssignment = assignment;
+      state.lastLocalWriteAt = Date.now();
+      saveToLocalStorage();
+      renderHostTable();
+      renderStudentQuickChips();
+      playFanfareSound();
+      showStudentResultCard(assignment);
+
+      if (state.appsScriptUrl) {
+        try {
+          await fetch(state.appsScriptUrl, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "markDrawn",
+              room: state.room,
+              angel: assignment.angel
+            })
+          });
+        } catch (e) {}
+      }
+    }
+
+    function showStudentResultCard(assignment) {
+      document.getElementById("student-spin-stage").classList.add("hidden");
+      const resStage = document.getElementById("student-result-stage");
+      resStage.classList.remove("hidden");
+
+      document.getElementById("res-angel-name").textContent = assignment.angel;
+      document.getElementById("res-target-emoji").textContent = assignment.emoji;
+      document.getElementById("res-target-nickname").textContent = assignment.nickname;
+      document.getElementById("res-target-realname").textContent = assignment.target;
+
+      const nickLayer = document.getElementById("nickname-display-layer");
+      const secretOverlay = document.getElementById("secret-name-overlay");
+      nickLayer.classList.remove("nickname-blur");
+      nickLayer.classList.add("nickname-clear");
+      secretOverlay.classList.add("hidden");
+    }
+
+    // 별명 터치 시 별명이 흐려지며 친구 진짜 이름이 1초 동안 아주 작게 보였다가 다시 별명이 보이는 기능
+    window.peekSecretName = function() {
+      const nickLayer = document.getElementById("nickname-display-layer");
+      const secretOverlay = document.getElementById("secret-name-overlay");
+      if (!nickLayer || !secretOverlay) return;
+
+      if (state.peekTimer) {
+        clearTimeout(state.peekTimer);
+        state.peekTimer = null;
+      }
+
+      playPeekSound();
+      nickLayer.classList.remove("nickname-clear");
+      nickLayer.classList.add("nickname-blur");
+      secretOverlay.classList.remove("hidden");
+
+      state.peekTimer = setTimeout(() => {
+        nickLayer.classList.remove("nickname-blur");
+        nickLayer.classList.add("nickname-clear");
+        secretOverlay.classList.add("hidden");
+        state.peekTimer = null;
+      }, 1000);
+    };
+
+    window.resetStudentView = function() {
+      if (state.peekTimer) {
+        clearTimeout(state.peekTimer);
+        state.peekTimer = null;
+      }
+      document.getElementById("student-result-stage").classList.add("hidden");
+      document.getElementById("student-spin-stage").classList.remove("hidden");
+      document.getElementById("student-name-input").value = "";
+      const liveStatus = document.getElementById("wheel-live-status");
+      if (liveStatus) liveStatus.textContent = "✨ 내 이름을 누르고 띠리릭~ 카드 슬롯을 돌려보세요!";
+      renderStudentQuickChips();
+      renderSlotIdle();
+    };
+
+    // 14. 활동기록판 PDF & 별자리 수행판 (10/15/20개 + 아이들마다 다른 별자리 랜덤 배정)
+    window.setConstellationStarCount = function(count) {
+      state.printStarCount = count;
+      [10, 15, 20].forEach((num) => {
+        const btn = document.getElementById("star-count-" + num);
+        if (!btn) return;
+        if (num === count) {
+          btn.className = "btn-jelly py-2 rounded-xl font-bold text-xs sm:text-sm bg-purple-600 text-white shadow-xs";
+        } else {
+          btn.className = "btn-jelly py-2 rounded-xl font-bold text-xs sm:text-sm bg-white text-purple-800 border border-purple-200";
+        }
+      });
+      renderPrintCards();
+    };
+
+    window.setConstellationMode = function(mode) {
+      state.constellationMode = mode;
+      renderPrintCards();
+    };
+
+    window.reshuffleStudentConstellations = function() {
+      if (!state.assignments.length) {
+        showToast("먼저 선생님 화면에서 명단을 배정해 주세요!", "⚠️");
+        return;
+      }
+      state.constellationMode = "random";
+      document.getElementById("constellation-mode-select").value = "random";
+      const shuffled = shuffleArray(CONSTELLATION_KEYS);
+      state.assignments.forEach((a, i) => {
+        a.constellationKey = shuffled[i % shuffled.length];
+      });
+      saveToLocalStorage();
+      renderPrintCards();
+      showToast("친구들마다 서로 다른 별자리로 다시 섞었어요! ✨", "🌟");
+    };
+
+    window.setPrintLayout = function(layout) {
+      state.printLayout = layout;
+      renderPrintCards();
+    };
+
+    function generateConstellationPoints(anchors, targetCount) {
+      if (!anchors || anchors.length < 2) return [];
+      if (anchors.length === targetCount) return anchors.map((p) => ({ ...p }));
+
+      const segLengths = [];
+      let totalLen = 0;
+      for (let i = 0; i < anchors.length - 1; i++) {
+        const dx = anchors[i + 1].x - anchors[i].x;
+        const dy = anchors[i + 1].y - anchors[i].y;
+        const len = Math.hypot(dx, dy);
+        segLengths.push(len);
+        totalLen += len;
+      }
+
+      const points = [];
+      for (let k = 0; k < targetCount; k++) {
+        const targetDist = (k / (targetCount - 1)) * totalLen;
+        let acc = 0;
+        let placed = false;
+        for (let i = 0; i < segLengths.length; i++) {
+          const seg = segLengths[i];
+          if (acc + seg >= targetDist || i === segLengths.length - 1) {
+            const ratio = seg > 0 ? Math.min(Math.max((targetDist - acc) / seg, 0), 1) : 0;
+            points.push({
+              x: Math.round(anchors[i].x + (anchors[i + 1].x - anchors[i].x) * ratio),
+              y: Math.round(anchors[i].y + (anchors[i + 1].y - anchors[i].y) * ratio)
+            });
+            placed = true;
+            break;
+          }
+          acc += seg;
+        }
+        if (!placed) points.push({ ...anchors[anchors.length - 1] });
+      }
+      return points;
+    }
+
+    function createStarPolygonPoints(cx, cy, outerR, innerR) {
+      const pts = [];
+      for (let i = 0; i < 10; i++) {
+        const r = i % 2 === 0 ? outerR : innerR;
+        const angle = (Math.PI / 5) * i - Math.PI / 2;
+        pts.push(`${(cx + r * Math.cos(angle)).toFixed(1)},${(cy + r * Math.sin(angle)).toFixed(1)}`);
+      }
+      return pts.join(" ");
+    }
+
+    function buildConstellationSVG(constellationKey, starCount) {
+      const data = CONSTELLATIONS[constellationKey] || CONSTELLATIONS.crown;
+      const points = generateConstellationPoints(data.anchors, starCount);
+      const polylineStr = points.map((p) => `${p.x},${p.y}`).join(" ");
+      const starRadius = starCount === 20 ? 11.5 : starCount === 15 ? 13 : 14.5;
+
+      const starsMarkup = points.map((pt, idx) => {
+        const num = idx + 1;
+        const isStart = idx === 0;
+        const isEnd = idx === points.length - 1;
+        const fill = isStart ? "#FEF3C7" : isEnd ? "#FCE7F3" : "#FFFFFF";
+        const stroke = isStart ? "#D97706" : isEnd ? "#DB2777" : "#6366F1";
+
+        return `
+          <g>
+            <polygon points="${createStarPolygonPoints(pt.x, pt.y, starRadius, starRadius * 0.46)}"
+                     fill="${fill}" stroke="${stroke}" stroke-width="1.8" />
+            <text x="${pt.x}" y="${pt.y + 3.2}" text-anchor="middle" font-size="8.5" font-weight="800" fill="#1e293b">${num}</text>
+            ${isStart ? `<text x="${pt.x}" y="${pt.y + starRadius + 9}" text-anchor="middle" font-size="8" font-weight="800" fill="#FDE68A">출발</text>` : ""}
+            ${isEnd ? `<text x="${pt.x}" y="${pt.y + starRadius + 9}" text-anchor="middle" font-size="8" font-weight="800" fill="#F9A8D4">완성!</text>` : ""}
+          </g>`;
+      }).join("");
+
+      return `
+        <svg viewBox="0 0 420 212" width="420" height="212" class="w-full h-auto max-h-[225px] bg-gradient-to-b from-indigo-950 via-slate-900 to-indigo-950 rounded-2xl border-2 border-indigo-200 p-1">
+          <circle cx="24" cy="24" r="1.5" fill="#FDE68A" opacity="0.7" />
+          <circle cx="392" cy="28" r="1.8" fill="#FBCFE8" opacity="0.7" />
+          <circle cx="395" cy="184" r="1.4" fill="#BAE6FD" opacity="0.7" />
+          <circle cx="22" cy="186" r="1.6" fill="#FDE68A" opacity="0.7" />
+          <polyline points="${polylineStr}" fill="none" stroke="#A5B4FC" stroke-width="2.2" stroke-dasharray="5,4" stroke-linecap="round" stroke-linejoin="round" />
+          ${starsMarkup}
+        </svg>`;
+    }
+
+    function renderPrintCards() {
+      const container = document.getElementById("print-cards-container");
+      if (!container) return;
+
+      if (!state.assignments.length) {
+        container.innerHTML = `
+          <div class="bg-white/95 rounded-3xl p-10 text-center border-2 border-dashed border-purple-200 text-slate-500">
+            <div class="text-4xl mb-2">🌟</div>
+            <p class="font-bold text-base">아직 배정된 명단이 없어요!</p>
+            <p class="text-xs mt-1">[👩‍🏫 선생님 화면]에서 먼저 친구들 이름을 넣고 마니또를 배정해 주세요.</p>
+          </div>`;
+        return;
+      }
+
+      const singleClass = state.printLayout === "1perPage" ? "single-per-page" : "";
+
+      container.innerHTML = state.assignments.map((item, idx) => {
+        const cKey =
+          state.constellationMode === "random"
+            ? item.constellationKey || CONSTELLATION_KEYS[idx % CONSTELLATION_KEYS.length]
+            : state.constellationMode;
+        const cInfo = CONSTELLATIONS[cKey] || CONSTELLATIONS.crown;
+
+        return `
+          <article class="activity-sheet-card ${singleClass} bg-white rounded-3xl p-5 sm:p-6 shadow-md border-2 border-purple-200 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between border-b-2 border-dashed border-amber-200 pb-3 mb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
+                    ${getKkyungMascotSVG("w-10 h-10", 40)}
+                  </div>
+                  <div>
+                    <h3 class="font-cute text-xl sm:text-2xl text-slate-800 leading-tight">나의 수호천사 활동기록판</h3>
+                    <p class="text-[11px] text-pink-600 font-bold">수호천사 뀽이가 비밀을 함께 지켜줄게 뀽! ✨</p>
+                  </div>
+                </div>
+                <span class="text-xs font-bold px-3 py-1 rounded-full bg-purple-100 text-purple-800 shrink-0">
+                  ${cInfo.title} (${state.printStarCount}칸)
+                </span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 mb-3">
+                <div class="rounded-2xl bg-amber-50 border-2 border-amber-200 p-3 flex items-center justify-between">
+                  <span class="text-xs sm:text-sm font-bold text-amber-800">1. 수호천사 (내 이름)</span>
+                  <span class="font-cute text-xl sm:text-2xl text-slate-900">${escapeHtml(item.angel)}</span>
+                </div>
+                <div class="rounded-2xl bg-pink-50 border-2 border-pink-200 p-3 flex items-center justify-between">
+                  <span class="text-xs sm:text-sm font-bold text-pink-800">2. 도와줄 친구 별명</span>
+                  <span class="font-cute text-xl sm:text-2xl text-pink-700">${item.emoji} ${escapeHtml(item.nickname)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs text-slate-600 px-1">
+                <span class="font-bold text-indigo-900">3. 나의 수호천사 별자리 수행판 (비밀을 지키며 색칠해요! 🎨)</span>
+                <span>1번 출발 → ${state.printStarCount}번 완성!</span>
+              </div>
+              ${buildConstellationSVG(cKey, state.printStarCount)}
+            </div>
+
+            <div class="mt-2.5 flex items-center justify-between text-[11px] text-slate-400 px-1">
+              <span>🤫 친구에게 들키지 않게 조용히 도와주고 예쁜 색연필로 별을 칠해요!</span>
+              <span>우리 반 수호천사 마니또</span>
+            </div>
+          </article>`;
+      }).join("");
+    }
+
+    // 구글 사이트 등 iframe 보안 환경에서도 100% 작동하는 직접 PDF 파일 생성 & 다운로드
+    window.downloadDirectPDF = async function() {
+      if (!state.assignments.length) {
+        showToast("먼저 마니또 배정을 완료한 뒤 PDF로 저장해 주세요! 뀽!", "⚠️");
+        return;
+      }
+
+      renderPrintCards();
+
+      if (typeof window.html2canvas === "undefined" || !window.jspdf || !window.jspdf.jsPDF) {
+        downloadStandalonePrintHTML();
+        return;
+      }
+
+      const btn = document.getElementById("pdf-download-btn");
+      const btnText = document.getElementById("pdf-download-btn-text");
+      const originalText = btnText ? btnText.textContent : "활동기록판 PDF 파일 저장";
+
+      if (btn) btn.disabled = true;
+      showToast("뀽이가 예쁜 별자리 활동기록판 PDF를 만들고 있어요! 잠시만 기다려 주세요 뀽~ ✨", "🪄");
+
+      const container = document.getElementById("print-cards-container");
+      const cardEls = Array.from(container.querySelectorAll(".activity-sheet-card"));
+      const perPage = state.printLayout === "1perPage" ? 1 : 2;
+      const totalPages = Math.ceil(cardEls.length / perPage);
+
+      const staging = document.createElement("div");
+      staging.style.position = "fixed";
+      staging.style.left = "-10000px";
+      staging.style.top = "0";
+      staging.style.width = "794px";
+      staging.style.background = "#ffffff";
+      staging.style.zIndex = "-1";
+      document.body.appendChild(staging);
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+        for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
+          if (btnText) {
+            btnText.textContent = `PDF 만드는 중... (${pageIdx + 1}/${totalPages}장)`;
+          }
+
+          const pageSheet = document.createElement("div");
+          pageSheet.style.width = "794px";
+          pageSheet.style.minHeight = "1122px";
+          pageSheet.style.padding = "28px";
+          pageSheet.style.background = "#ffffff";
+          pageSheet.style.boxSizing = "border-box";
+          pageSheet.style.display = "flex";
+          pageSheet.style.flexDirection = "column";
+          pageSheet.style.justifyContent = perPage === 1 ? "center" : "space-between";
+          pageSheet.style.gap = "22px";
+
+          const slice = cardEls.slice(pageIdx * perPage, (pageIdx + 1) * perPage);
+          slice.forEach((origCard, idxInPage) => {
+            const clone = origCard.cloneNode(true);
+            clone.style.boxShadow = "none";
+            clone.style.border = "2px dashed #94a3b8";
+            clone.style.margin = "0";
+            clone.style.background = "#ffffff";
+            if (perPage === 1) {
+              clone.style.padding = "32px";
+            }
+            pageSheet.appendChild(clone);
+
+            if (perPage === 2 && idxInPage === 0 && slice.length === 2) {
+              const cutLine = document.createElement("div");
+              cutLine.style.borderTop = "1.5px dashed #cbd5e1";
+              cutLine.style.textAlign = "center";
+              cutLine.style.fontSize = "11px";
+              cutLine.style.color = "#94a3b8";
+              cutLine.style.paddingTop = "4px";
+              cutLine.textContent = "✂️ ---------------------------------- 자르는 선 ---------------------------------- ✂️";
+              pageSheet.appendChild(cutLine);
+            }
+          });
+
+          staging.innerHTML = "";
+          staging.appendChild(pageSheet);
+
+          await new Promise((r) => setTimeout(r, 50));
+
+          const canvas = await window.html2canvas(pageSheet, {
+            scale: 2,
+            backgroundColor: "#ffffff",
+            useCORS: true,
+            logging: false
+          });
+
+          const imgData = canvas.toDataURL("image/png");
+          if (pageIdx > 0) pdf.addPage();
+
+          const pdfW = 210;
+          const pdfH = Math.min((canvas.height * pdfW) / canvas.width, 297);
+          pdf.addImage(imgData, "PNG", 0, 0, pdfW, pdfH);
+        }
+
+        pdf.save(`우리반_수호천사_활동기록판_${state.room}.pdf`);
+        showToast("🎉 PDF 파일이 다운로드 폴더에 저장되었어요 뀽!", "📥");
+      } catch (err) {
+        downloadStandalonePrintHTML();
+      } finally {
+        if (staging && staging.parentNode) staging.parentNode.removeChild(staging);
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.textContent = originalText;
+      }
+    };
+
+    function downloadStandalonePrintHTML() {
+      const cardsHtml = document.getElementById("print-cards-container").innerHTML;
+      const htmlDoc = [
+        "\x3C!DOCTYPE html>\x3Chtml lang='ko'>\x3Chead>\x3Cmeta charset='UTF-8'>",
+        "\x3Ctitle>우리 반 수호천사 활동기록판\x3C/title>",
+        "\x3Cscript src='https://cdn.tailwindcss.com'>\x3C/script>",
+        "\x3Clink href='https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700;900&display=swap' rel='stylesheet'>",
+        "\x3Cstyle>body{font-family:'Noto Sans KR',sans-serif;padding:16px}.font-cute{font-family:'Jua',sans-serif}@media print{.no-print{display:none!important}.activity-sheet-card{break-inside:avoid;margin-bottom:12px}}\x3C/style>",
+        "\x3C/head>\x3Cbody class='bg-white max-w-4xl mx-auto'>",
+        "\x3Cdiv class='no-print mb-4 p-4 rounded-2xl bg-amber-100 flex items-center justify-between'>",
+        "\x3Cspan class='font-bold text-amber-900'>👼 Ctrl + P 를 눌러 PDF로 저장하거나 인쇄하세요!\x3C/span>",
+        "\x3Cbutton onclick='window.print()' class='px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold'>🖨️ 인쇄 / PDF 저장\x3C/button>\x3C/div>",
+        cardsHtml,
+        "\x3Cscript>window.onload=function(){setTimeout(function(){window.print();},500);};\x3C/script>",
+        "\x3C/body>\x3C/html>"
+      ].join("");
+
+      const blob = new Blob([htmlDoc], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `우리반_수호천사_활동기록판_인쇄용_${state.room}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("인쇄 전용 파일이 저장되었어요! 열어서 인쇄(Ctrl+P)해 주세요 뀽!", "📄");
+    }
+
+    window.triggerPrintPDF = function() {
+      if (!state.assignments.length) {
+        showToast("먼저 마니또 배정을 완료한 뒤 인쇄해 주세요!", "⚠️");
+        return;
+      }
+      renderPrintCards();
+      if (window.self !== window.top) {
+        showToast("구글 사이트 안에서는 인쇄 창이 막힐 수 있어요! 왼쪽 [📥 활동기록판 PDF 파일 저장]을 눌러주세요 뀽!", "💡");
+      } else {
+        showToast("인쇄 창에서 대상을 [PDF로 저장]으로 선택하시면 PDF 파일이 만들어져요!", "🖨️");
+      }
+      setTimeout(() => {
+        try {
+          window.print();
+        } catch (e) {}
+      }, 350);
+    };
+
+    // 15. 구글 시트 연동 모달 & 백엔드 동기화
+    window.openSheetsModal = function() {
+      document.getElementById("apps-script-code-preview").textContent = APPS_SCRIPT_CODE;
+      document.getElementById("apps-script-url-input").value = state.appsScriptUrl || "";
+      const modal = document.getElementById("sheets-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    };
+
+    window.closeSheetsModal = function() {
+      const modal = document.getElementById("sheets-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    };
+
+    window.copyAppsScriptCode = function() {
+      copyTextSafely(APPS_SCRIPT_CODE, "구글 Apps Script 백엔드 코드가 복사되었어요!");
+    };
+
+    window.saveAppsScriptUrl = async function() {
+      const input = document.getElementById("apps-script-url-input");
+      const url = (input ? input.value : "").trim();
+      state.appsScriptUrl = url;
+      state.lastLocalWriteAt = Date.now();
+      saveToLocalStorage();
+
+      if (url) {
+        updateSheetsStatusDot(true);
+        renderQRCode();
+        await pushToGoogleSheets(false);
+        startCloudPolling();
+        if (url.endsWith("/dev")) {
+          showToast("⚠️ '/dev' 테스트 주소 대신 배포 완료된 '/exec' 주소를 넣어야 아이들이 접속할 수 있어요!", "⚠️");
+        } else {
+          showToast("구글 시트 백엔드가 연결되고 QR코드에 반영되었어요!", "📊");
+        }
+      } else {
+        updateSheetsStatusDot(false);
+        renderQRCode();
+        showToast("구글 시트 URL 연결이 해제되었어요.", "🔌");
+      }
+      closeSheetsModal();
+    };
+
+    function updateSheetsStatusDot(connected) {
+      const dot = document.getElementById("sheets-status-dot");
+      if (!dot) return;
+      dot.className = connected
+        ? "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"
+        : "w-2.5 h-2.5 rounded-full bg-slate-300";
+    }
+
+    async function pushToGoogleSheets(silent = true) {
+      if (!state.appsScriptUrl) return;
+      try {
+        await fetch(state.appsScriptUrl, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "saveAll",
+            room: state.room,
+            round: state.round,
+            assignments: state.assignments
+          })
+        });
+        if (!silent) showToast("구글 시트에 명단이 전송되었어요!", "📊");
+      } catch (e) {
+        if (!silent) showToast("구글 시트 전송 중 네트워크 확인이 필요해요.", "⚠️");
+      }
+    }
+
+    async function pullFromGoogleSheets(silent = true) {
+      if (!state.appsScriptUrl) return;
+      if (silent && Date.now() - state.lastLocalWriteAt < 5000) return;
+      try {
+        const sep = state.appsScriptUrl.includes("?") ? "&" : "?";
+        const res = await fetch(`${state.appsScriptUrl}${sep}action=get&room=${encodeURIComponent(state.room)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.ok && Array.isArray(data.assignments)) {
+          const nameInput = document.getElementById("student-names-input");
+          const isTyping = nameInput && document.activeElement === nameInput;
+
+          if (data.assignments.length > 0) {
+            const prevConstellations = new Map(state.assignments.map((a) => [a.angel, a.constellationKey]));
+            state.round = data.round || state.round;
+            state.assignments = data.assignments.map((item, idx) => ({
+              ...item,
+              constellationKey: prevConstellations.get(item.angel) || CONSTELLATION_KEYS[idx % CONSTELLATION_KEYS.length]
+            }));
+            if (nameInput && !isTyping) {
+              nameInput.value = state.assignments.map((a) => a.angel).join(", ");
+              updateStudentCountLabel();
+            }
+            saveToLocalStorage();
+            renderAllViews();
+            if (!silent) showToast("구글 시트에서 최신 상태를 불러왔어요!", "🔄");
+          } else if (state.assignments.length > 0) {
+            state.assignments = [];
+            state.round = 1;
+            if (nameInput && !isTyping) {
+              nameInput.value = "";
+              updateStudentCountLabel();
+            }
+            saveToLocalStorage();
+            renderAllViews();
+            if (!silent) showToast("구글 시트가 비어 있어 화면 명단도 초기화되었어요!", "🧹");
+          } else if (!silent) {
+            showToast("구글 시트에 저장된 명단이 아직 없어요!", "📭");
+          }
+        }
+      } catch (e) {
+        if (!silent) showToast("시트 데이터를 불러오지 못했어요. 배포 권한(모든 사용자)을 확인해 주세요!", "⚠️");
+      }
+    }
+
+    window.syncFromCloudManual = function() {
+      if (!state.appsScriptUrl) {
+        openSheetsModal();
+        showToast("먼저 [📊 구글 시트 연동]에서 웹 앱 URL을 연결해 주세요!", "📊");
+        return;
+      }
+      pullFromGoogleSheets(false);
+    };
+
+    function startCloudPolling() {
+      if (state.pollTimer) clearInterval(state.pollTimer);
+      if (!state.appsScriptUrl) return;
+      state.pollTimer = setInterval(() => {
+        pullFromGoogleSheets(true);
+      }, 8000);
+    }
+
+    window.copyTableForSheets = function() {
+      if (!state.assignments.length) {
+        showToast("복사할 배정 명단이 없어요!", "⚠️");
+        return;
+      }
+      const header = ["번호", "수호천사", "도와줄친구", "별명", "상태"].join("\t");
+      const rows = state.assignments.map((a, i) =>
+        [i + 1, a.angel, a.target, `${a.emoji} ${a.nickname}`, a.drawn ? "완료" : "대기"].join("\t")
+      );
+      copyTextSafely([header, ...rows].join("\n"), "구글 시트에 바로 붙여넣기(Ctrl+V) 할 수 있게 복사되었어요!");
+    };
+
+    window.downloadCSV = function() {
+      if (!state.assignments.length) {
+        showToast("저장할 배정 명단이 없어요!", "⚠️");
+        return;
+      }
+      const lines = [
+        ["번호", "수호천사", "도와줄친구", "별명", "상태"].join(","),
+        ...state.assignments.map((a, i) =>
+          [i + 1, `"${a.angel}"`, `"${a.target}"`, `"${a.emoji} ${a.nickname}"`, a.drawn ? "완료" : "대기"].join(",")
+        )
+      ];
+      const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `수호천사_마니또_${state.room}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("CSV 파일이 저장되었어요!", "💾");
+    };
+
+    // 16. 로컬 스토리지 저장/복원 및 URL 파라미터 초기화
+    function getStorageKey() {
+      return `manito_angel_v2_${state.room}`;
+    }
+
+    function saveToLocalStorage() {
+      try {
+        localStorage.setItem(
+          getStorageKey(),
+          JSON.stringify({
+            round: state.round,
+            assignments: state.assignments,
+            appsScriptUrl: state.appsScriptUrl
+          })
+        );
+      } catch (e) {}
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(getStorageKey());
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed.round) state.round = parsed.round;
+        if (Array.isArray(parsed.assignments)) state.assignments = parsed.assignments;
+        if (parsed.appsScriptUrl) state.appsScriptUrl = parsed.appsScriptUrl;
+      } catch (e) {}
+    }
+
+    window.updateRoomCode = function(newCode) {
+      const cleaned = (newCode || "CLASS1").trim().replace(/[^a-zA-Z0-9가-힣_-]/g, "") || "CLASS1";
+      state.room = cleaned;
+      document.getElementById("room-code-input").value = cleaned;
+      document.getElementById("room-badge").textContent = `방 코드: ${cleaned}`;
+      loadFromLocalStorage();
+      renderAllViews();
+      if (state.appsScriptUrl) pullFromGoogleSheets(true);
+    };
+
+    function renderAllViews() {
+      renderHostTable();
+      renderQRCode();
+      renderStudentQuickChips();
+      renderSlotIdle();
+      renderPrintCards();
+      updateSheetsStatusDot(Boolean(state.appsScriptUrl));
+    }
+
+    // 페이지 로드 시 초기화
+    window.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(window.location.search);
+      const urlRoom = params.get("room");
+      const urlRole = params.get("role");
+      const urlSheet = params.get("sheet");
+
+      if (urlRoom) {
+        state.room = urlRoom;
+        document.getElementById("room-code-input").value = urlRoom;
+        document.getElementById("room-badge").textContent = `방 코드: ${urlRoom}`;
+      }
+
+      loadFromLocalStorage();
+
+      if (urlSheet) {
+        state.appsScriptUrl = urlSheet;
+      }
+
+      if (window.location.hash && window.location.hash.startsWith("#d=")) {
+        const decoded = decodePayloadBase64(window.location.hash.slice(3));
+        if (decoded && Array.isArray(decoded.assignments) && decoded.assignments.length > 0) {
+          state.room = decoded.room || state.room;
+          state.round = decoded.round || state.round;
+          state.assignments = decoded.assignments;
+        }
+      }
+
+      const nameInput = document.getElementById("student-names-input");
+      if (nameInput) {
+        if (state.assignments.length > 0) {
+          nameInput.value = state.assignments.map((a) => a.angel).join(", ");
+        }
+        nameInput.addEventListener("input", updateStudentCountLabel);
+        updateStudentCountLabel();
+      }
+
+      // 공식 마스코트 '뀽' 일러스트 배치
+      const headerMascot = document.getElementById("header-kkyung-mascot");
+      if (headerMascot) headerMascot.innerHTML = getKkyungMascotSVG("w-full h-full");
+      const resultMiniMascot = document.getElementById("result-kkyung-mini");
+      if (resultMiniMascot) resultMiniMascot.innerHTML = getKkyungMascotSVG("w-7 h-7");
+      const floatingMascot = document.getElementById("floating-kkyung-svg");
+      if (floatingMascot) floatingMascot.innerHTML = getKkyungMascotSVG("w-full h-full");
+
+      renderAllViews();
+
+      if (urlRole === "student") {
+        state.isStudentLockedMode = true;
+        const nav = document.getElementById("main-nav-tabs");
+        const sheetsBtn = document.getElementById("sheets-modal-btn");
+        if (nav) nav.classList.add("hidden");
+        if (sheetsBtn) sheetsBtn.classList.add("hidden");
+        switchTab("student");
+      } else {
+        switchTab("host");
+      }
+
+      if (state.appsScriptUrl) {
+        pullFromGoogleSheets(true);
+        startCloudPolling();
+      }
+    });
+  </script>
+</body>
+</html>
