@@ -220,6 +220,11 @@
          1. 선생님 화면 (호스트 & QR코드 & 난수 배정 현황)
     ========================================================== -->
     <section id="view-host" class="space-y-5">
+      <!-- 배포용 세이브포인트(구글 시트 자동 연결) 배너 -->
+      <div id="savepoint-banner-card" class="rounded-3xl p-4 sm:p-5 shadow-md border-2 border-amber-300 bg-gradient-to-r from-amber-50 via-yellow-50 to-pink-50 transition-all">
+        <!-- JS(renderSavePointBanner)로 연결 상태에 맞게 렌더링 -->
+      </div>
+
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
         <!-- 왼쪽: 명단 입력 및 난수 배정 컨트롤 (7컬럼) -->
@@ -661,6 +666,20 @@
       </div>
 
       <!-- 3. 수동 복사 / CSV 백업 -->
+      <div class="bg-sky-50/70 p-3.5 rounded-2xl border border-sky-200 space-y-2">
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <span class="text-xs sm:text-sm font-bold text-sky-900">
+            💾 배포용 세이브포인트 링크 (교실 PC · 다른 컴퓨터 이어하기 주소)
+          </span>
+          <button type="button" onclick="copyTeacherSavePointUrl()" class="btn-jelly px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold">
+            🔗 세이브포인트 링크 복사
+          </button>
+        </div>
+        <div id="modal-savepoint-url" class="bg-white px-3 py-2 rounded-xl border border-sky-200 text-[11px] text-slate-600 truncate select-all">
+          세이브포인트 주소 준비 중...
+        </div>
+      </div>
+
       <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
         <span class="text-xs text-slate-500">스크립트 없이 직접 시트에 붙여넣으려면?</span>
         <div class="flex gap-2">
@@ -1332,110 +1351,111 @@
           renderAllViews();
           await pushToGoogleSheets(true);
           showToast("돌림판 상태가 모두 초기화되었어요!", "🔄");
-        }
-      });
-    };
-
-    window.requestClearAll = function() {
-      openConfirmModal({
-        emoji: "🧹",
-        title: "명단과 구글 시트를 싹 비울까요?",
-        desc: "입력된 학생 명단과 배정된 난수표는 물론, 연결된 구글 시트 내용까지 모두 깨끗하게 초기화됩니다!",
-        okText: "네, 시트까지 싹 비울게요! 🧹",
-        onConfirm: async () => {
-          state.assignments = [];
-          state.round = 1;
-          state.lastLocalWriteAt = Date.now();
-          const nameInput = document.getElementById("student-names-input");
-          if (nameInput) nameInput.value = "";
-          updateStudentCountLabel();
-          saveToLocalStorage();
-          renderAllViews();
-          await pushToGoogleSheets(true);
-          showToast("명단과 구글 시트가 모두 깨끗하게 비워졌어요 뀽!", "🧹");
-        }
-      });
-    };
-
-    window.toggleHostSecretMode = function() {
-      state.hostSecretMode = !state.hostSecretMode;
-      const btn = document.getElementById("secret-toggle-btn");
-      const icon = document.getElementById("secret-toggle-icon");
-      const txt = document.getElementById("secret-toggle-text");
-      if (state.hostSecretMode) {
-        btn.className = "btn-jelly px-3.5 py-2 rounded-xl bg-slate-800 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-xs";
-        icon.textContent = "🙈";
-        txt.textContent = "대상 이름 가리기 (비밀 모드 ON)";
-      } else {
-        btn.className = "btn-jelly px-3.5 py-2 rounded-xl bg-rose-500 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-xs";
-        icon.textContent = "👀";
-        txt.textContent = "대상 이름 보이기 (비밀 모드 OFF)";
+    // 12. QR코드 및 배포용 세이브포인트 링크 생성
+    function getTeacherSavePointUrl() {
+      const base = window.location.href.split("#")[0].split("?")[0];
+      const params = new URLSearchParams();
+      params.set("room", state.room);
+      if (state.appsScriptUrl) {
+        params.set("sheet", state.appsScriptUrl);
       }
-      renderHostTable();
+      return `${base}?${params.toString()}`;
+    }
+
+    function syncAddressBarSavePoint() {
+      if (state.isStudentLockedMode || isSandboxOrLocalUrl()) return;
+      try {
+        window.history.replaceState(null, "", getTeacherSavePointUrl());
+      } catch (e) {}
+    }
+
+    window.copyTeacherSavePointUrl = function() {
+      if (!state.appsScriptUrl) {
+        openSheetsModal();
+        showToast("먼저 구글 시트 웹 앱 URL을 연결해야 세이브포인트가 만들어져요 뀽!", "📊");
+        return;
+      }
+      copyTextSafely(
+        getTeacherSavePointUrl(),
+        "💾 세이브포인트 링크가 복사되었어요! 교실 컴퓨터 주소창에 붙여넣으면 시트가 자동 연결돼요 뀽!"
+      );
     };
 
-    // 11. 선생님 화면 테이블 렌더링
-    function renderHostTable() {
-      const tbody = document.getElementById("host-table-body");
-      const roundBadge = document.getElementById("draw-round-badge");
-      const counter = document.getElementById("progress-counter");
-      if (!tbody) return;
+    function renderSavePointBanner() {
+      const card = document.getElementById("savepoint-banner-card");
+      const modalPreview = document.getElementById("modal-savepoint-url");
+      const saveUrl = getTeacherSavePointUrl();
 
-      roundBadge.textContent = `난수표 #${state.round}`;
-      const doneCount = state.assignments.filter((a) => a.drawn).length;
-      counter.textContent = `뽑기 완료: ${doneCount} / ${state.assignments.length}명`;
+      if (modalPreview) {
+        modalPreview.textContent = saveUrl;
+      }
+      if (!card) return;
 
-      if (!state.assignments.length) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="5" class="py-10 text-center text-slate-400 text-sm">
-              위 입력칸에 우리 반 친구들 이름을 적고 <b>[✨ 마니또 배정하기]</b> 버튼을 눌러주세요!
-            </td>
-          </tr>`;
+      if (!state.appsScriptUrl) {
+        card.className = "rounded-3xl p-4 sm:p-5 shadow-md border-2 border-amber-300 bg-gradient-to-r from-amber-50 via-yellow-50 to-pink-50 transition-all";
+        card.innerHTML = `
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <span class="text-2xl sm:text-3xl shrink-0">💾</span>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="font-cute text-lg sm:text-xl text-amber-900">배포용 세이브포인트 (미연결 상태)</h3>
+                  <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-200/80 text-amber-900">시트 연결 필요</span>
+                </div>
+                <p class="text-xs sm:text-sm text-amber-800/90 mt-0.5 leading-relaxed">
+                  깃허브 배포 후 <b>교실 컴퓨터나 다른 PC</b>에서도 우리 반 명단을 그대로 불러오려면, 구글 시트를 연결해 <b>세이브포인트 링크</b>를 만들어 주세요 뀽!
+                </p>
+              </div>
+            </div>
+            <button type="button" onclick="openSheetsModal()" class="btn-jelly px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-xs sm:text-sm shadow-sm shrink-0">
+              📊 시트 연결하고 세이브포인트 만들기
+            </button>
+          </div>`;
         return;
       }
 
-      tbody.innerHTML = state.assignments.map((item, idx) => {
-        const maskedTarget = state.hostSecretMode
-          ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-400 text-xs font-bold">🔒 비밀 가림</span>`
-          : `<span class="font-bold text-rose-600">${escapeHtml(item.target)}</span>`;
-
-        const statusBadge = item.drawn
-          ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">✅ 뽑기 완료</span>`
-          : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">⏳ 대기 중</span>`;
-
-        return `
-          <tr class="hover:bg-amber-50/40 transition-colors">
-            <td class="py-3 px-4 text-slate-500 font-bold text-xs sm:text-sm">${idx + 1}</td>
-            <td class="py-3 px-4 font-bold text-slate-800">${escapeHtml(item.angel)}</td>
-            <td class="py-3 px-4">
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-50 border border-pink-200 text-pink-800 font-bold text-xs sm:text-sm">
-                <span>${item.emoji}</span>
-                <span>${escapeHtml(item.nickname)}</span>
-              </span>
-            </td>
-            <td class="py-3 px-4">${maskedTarget}</td>
-            <td class="py-3 px-4 text-center">${statusBadge}</td>
-          </tr>`;
-      }).join("");
+      card.className = "rounded-3xl p-4 sm:p-5 shadow-md border-2 border-emerald-300 bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 transition-all";
+      card.innerHTML = `
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div class="flex items-start gap-3 min-w-0 flex-1">
+            <span class="text-2xl sm:text-3xl shrink-0">💾</span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="font-cute text-lg sm:text-xl text-emerald-900">배포용 세이브포인트 연결됨!</h3>
+                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-900">방 코드: ${escapeHtml(state.room)} · 시트 자동 동기화</span>
+              </div>
+              <p class="text-xs text-emerald-800 mt-0.5">
+                아래 세이브 링크를 즐겨찾기(<b>Ctrl+D</b>)하거나 복사해 두시면 어느 컴퓨터에서 열어도 이 시트가 바로 연결돼요 뀽!
+              </p>
+              <div class="mt-2 bg-white/90 px-3 py-1.5 rounded-xl border border-emerald-200 text-[11px] text-slate-600 truncate select-all">
+                ${escapeHtml(saveUrl)}
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0 flex-wrap">
+            <button type="button" onclick="copyTeacherSavePointUrl()" class="btn-jelly px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-sm">
+              🔗 세이브 링크 복사
+            </button>
+            <button type="button" onclick="openSheetsModal()" class="btn-jelly px-3 py-2.5 rounded-2xl bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs sm:text-sm">
+              ⚙️ 시트 설정
+            </button>
+          </div>
+        </div>`;
     }
 
-    function escapeHtml(str) {
-      return String(str || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-    }
-
-    // 12. QR코드 생성
     function getStudentJoinUrl() {
-      if (state.appsScriptUrl && /^https:\/\/script\.google\.com\//i.test(state.appsScriptUrl)) {
-        const sep = state.appsScriptUrl.includes("?") ? "&" : "?";
-        return `${state.appsScriptUrl}${sep}room=${encodeURIComponent(state.room)}&role=student`;
+      const base = window.location.href.split("#")[0].split("?")[0];
+
+      if (state.appsScriptUrl) {
+        if (!isSandboxOrLocalUrl()) {
+          return `${base}?room=${encodeURIComponent(state.room)}&role=student&sheet=${encodeURIComponent(state.appsScriptUrl)}`;
+        }
+        if (/^https:\/\/script\.google\.com\//i.test(state.appsScriptUrl)) {
+          const sep = state.appsScriptUrl.includes("?") ? "&" : "?";
+          return `${state.appsScriptUrl}${sep}room=${encodeURIComponent(state.room)}&role=student`;
+        }
       }
 
-      const base = window.location.href.split("#")[0].split("?")[0];
       const payload = encodePayloadBase64({
         room: state.room,
         round: state.round,
@@ -2187,16 +2207,20 @@
 
       if (url) {
         updateSheetsStatusDot(true);
+        renderSavePointBanner();
+        syncAddressBarSavePoint();
         renderQRCode();
         await pushToGoogleSheets(false);
         startCloudPolling();
         if (url.endsWith("/dev")) {
           showToast("⚠️ '/dev' 테스트 주소 대신 배포 완료된 '/exec' 주소를 넣어야 아이들이 접속할 수 있어요!", "⚠️");
         } else {
-          showToast("구글 시트 백엔드가 연결되고 QR코드에 반영되었어요!", "📊");
+          showToast("구글 시트 연결 & 배포용 세이브포인트가 생성되었어요! 💾", "📊");
         }
       } else {
         updateSheetsStatusDot(false);
+        renderSavePointBanner();
+        syncAddressBarSavePoint();
         renderQRCode();
         showToast("구글 시트 URL 연결이 해제되었어요.", "🔌");
       }
@@ -2362,10 +2386,12 @@
       document.getElementById("room-badge").textContent = `방 코드: ${cleaned}`;
       loadFromLocalStorage();
       renderAllViews();
+      syncAddressBarSavePoint();
       if (state.appsScriptUrl) pullFromGoogleSheets(true);
     };
 
     function renderAllViews() {
+      renderSavePointBanner();
       renderHostTable();
       renderQRCode();
       renderStudentQuickChips();
@@ -2385,6 +2411,13 @@
         state.room = urlRoom;
         document.getElementById("room-code-input").value = urlRoom;
         document.getElementById("room-badge").textContent = `방 코드: ${urlRoom}`;
+      }
+
+      loadFromLocalStorage();
+
+      if (urlSheet) {
+        state.appsScriptUrl = urlSheet;
+        saveToLocalStorage();
       }
 
       loadFromLocalStorage();
@@ -2430,6 +2463,10 @@
         switchTab("student");
       } else {
         switchTab("host");
+        syncAddressBarSavePoint();
+        if (urlSheet) {
+          showToast("💾 세이브포인트 링크로 접속되어 구글 시트와 자동 연결되었어요 뀽!", "👼");
+        }
       }
 
       if (state.appsScriptUrl) {
