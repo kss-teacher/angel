@@ -1351,6 +1351,123 @@
           renderAllViews();
           await pushToGoogleSheets(true);
           showToast("돌림판 상태가 모두 초기화되었어요!", "🔄");
+        }
+      });
+    };
+
+    window.requestClearAll = function() {
+      openConfirmModal({
+        emoji: "🧹",
+        title: "명단과 배정표를 모두 초기화할까요?",
+        desc: "입력된 친구 이름, 배정된 난수표, 그리고 연결된 구글 시트 데이터까지 깨끗하게 모두 비워집니다.",
+        okText: "네, 싹 비울게요! 🧹",
+        onConfirm: async () => {
+          state.assignments = [];
+          state.round = 1;
+          state.lastLocalWriteAt = Date.now();
+          const nameInput = document.getElementById("student-names-input");
+          if (nameInput) nameInput.value = "";
+          updateStudentCountLabel();
+          saveToLocalStorage();
+          renderAllViews();
+
+          if (state.appsScriptUrl) {
+            try {
+              await fetch(state.appsScriptUrl, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({
+                  action: "clearAll",
+                  room: state.room
+                })
+              });
+            } catch (e) {}
+          }
+          showToast("명단과 구글 시트 데이터가 깨끗하게 초기화되었어요! 🧹", "✨");
+        }
+      });
+    };
+
+    // 11. HTML 이스케이프 및 선생님 배정 현황표 렌더링
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    window.toggleHostSecretMode = function() {
+      state.hostSecretMode = !state.hostSecretMode;
+      const btn = document.getElementById("secret-toggle-btn");
+      const icon = document.getElementById("secret-toggle-icon");
+      const text = document.getElementById("secret-toggle-text");
+      if (state.hostSecretMode) {
+        if (btn) btn.className = "btn-jelly px-3.5 py-2 rounded-xl bg-slate-800 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-xs";
+        if (icon) icon.textContent = "🙈";
+        if (text) text.textContent = "대상 이름 가리기 (비밀 모드 ON)";
+      } else {
+        if (btn) btn.className = "btn-jelly px-3.5 py-2 rounded-xl bg-rose-600 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-xs";
+        if (icon) icon.textContent = "👀";
+        if (text) text.textContent = "대상 이름 보이기 (비밀 모드 OFF)";
+      }
+      renderHostTable();
+    };
+
+    function renderHostTable() {
+      const tbody = document.getElementById("host-table-body");
+      const progressCounter = document.getElementById("progress-counter");
+      const roundBadge = document.getElementById("draw-round-badge");
+
+      if (roundBadge) {
+        roundBadge.textContent = `난수표 #${state.round}`;
+      }
+
+      const total = state.assignments.length;
+      const drawnCount = state.assignments.filter((a) => a.drawn).length;
+      if (progressCounter) {
+        progressCounter.textContent = `뽑기 완료: ${drawnCount} / ${total}명`;
+      }
+
+      if (!tbody) return;
+
+      if (!total) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-10 px-4 text-center text-slate-400 text-sm">
+              아직 배정된 명단이 없어요. 위에서 친구 이름을 입력하고 <b>[✨ 마니또 배정하기]</b>를 눌러주세요! 👼
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = state.assignments.map((item, idx) => {
+        const targetCell = state.hostSecretMode
+          ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-400 text-xs font-bold select-none">🔒 비밀 보호 중</span>`
+          : `<span class="font-bold text-rose-600">${escapeHtml(item.target)}</span>`;
+
+        const statusBadge = item.drawn
+          ? `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">✅ 뽑기 완료</span>`
+          : `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">⏳ 대기 중</span>`;
+
+        return `
+          <tr class="hover:bg-amber-50/40 transition-colors">
+            <td class="py-3 px-4 font-bold text-slate-500 text-xs sm:text-sm">${idx + 1}</td>
+            <td class="py-3 px-4 font-bold text-slate-800">${escapeHtml(item.angel)}</td>
+            <td class="py-3 px-4">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-50 text-pink-700 border border-pink-200 font-bold text-xs sm:text-sm">
+                <span>${item.emoji}</span>
+                <span>${escapeHtml(item.nickname)}</span>
+              </span>
+            </td>
+            <td class="py-3 px-4">${targetCell}</td>
+            <td class="py-3 px-4 text-center">${statusBadge}</td>
+          </tr>`;
+      }).join("");
+    }
+
     // 12. QR코드 및 배포용 세이브포인트 링크 생성
     function getTeacherSavePointUrl() {
       const base = window.location.href.split("#")[0].split("?")[0];
@@ -2418,12 +2535,6 @@
       if (urlSheet) {
         state.appsScriptUrl = urlSheet;
         saveToLocalStorage();
-      }
-
-      loadFromLocalStorage();
-
-      if (urlSheet) {
-        state.appsScriptUrl = urlSheet;
       }
 
       if (window.location.hash && window.location.hash.startsWith("#d=")) {
