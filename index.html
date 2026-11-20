@@ -278,13 +278,13 @@
         <ol class="text-xs sm:text-sm text-slate-700 list-decimal list-inside space-y-1.5 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 leading-relaxed">
           <li>새 <b>구글 스프레드시트</b>를 열고 상단 메뉴 <b>[확장 프로그램] → [Apps Script]</b>를 클릭하세요.</li>
           <li>편집기의 기존 코드를 모두 지우고, 아래 <b>[📋 Apps Script 코드 전체 복사]</b> 내용을 붙여넣은 뒤 저장(<kbd class="px-1.5 py-0.5 bg-white rounded border text-xs">Ctrl+S</kbd>)하세요.</li>
-          <li>오른쪽 위 <b>[배포] → [새 배포] → 유형: [웹 앱]</b>, 액세스 권한을 <b>[모든 사용자]</b>로 선택하고 배포하세요.</li>
+          <li>오른쪽 위 <b>[배포] → [새 배포] → 유형: [웹 앱]</b>, 액세스 권한을 <b>[모든 사용자]</b>로 선택하고 배포하세요. <i>(기존 배포 수정 시에는 반드시 <b>[배포 관리 → ✏️ → 새 버전]</b>으로 배포해야 적용돼요!)</i></li>
           <li>발급된 <b>웹 앱 URL (끝이 <code>/exec</code>인 주소)</b>을 복사해 위 세이브포인트 입력칸에 연결하면 끝이에요 뀽!</li>
         </ol>
 
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-600">Google Apps Script 백엔드 코드 (CORS 오류 방지 text/plain & JSON 지원)</span>
+            <span class="text-xs font-bold text-slate-600">Google Apps Script 백엔드 코드 (CORS & 리다이렉트 우회 JSONP + POST 지원)</span>
             <button type="button" onclick="copyAppsScriptCode()" class="btn-jelly px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold shadow-xs">
               📋 Apps Script 코드 전체 복사
             </button>
@@ -315,7 +315,7 @@
             </div>
             <div class="sm:col-span-2 flex items-end gap-1.5 flex-wrap sm:flex-nowrap">
               <button type="button" onclick="fillSampleStudents()" class="btn-jelly flex-1 py-2.5 px-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-xs sm:text-sm font-bold whitespace-nowrap">
-                🐣 예시 20명 채우기
+                🐣 예시
               </button>
               <button type="button" onclick="syncFromCloudManual()" class="btn-jelly py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs sm:text-sm font-bold whitespace-nowrap">
                 🔄 시트 불러오기
@@ -592,7 +592,7 @@
           </div>
 
           <div class="flex flex-col sm:flex-row gap-2.5 justify-center">
-            <button type="button" onclick="peekSecretName()" class="btn-jelly py-3.5 px-6 rounded-2xl bg-gradient-to-r from-rose-400 to-amber-400 hover:from-rose-500 hover:to-amber-500 text-white font-cute text-lg sm:text-xl shadow-md">
+            <button type="button" onclick="peekSecretName()" class="btn-jelly py-3.5 px-6 rounded-2xl bg-gradient-to-r from-rose-400 to-amber-400 hover:from-rose-500 hover:to-orange-500 text-white font-cute text-lg sm:text-xl shadow-md">
               👀 비밀 친구 이름 1초 살짝 보기
             </button>
             <button type="button" onclick="resetStudentView()" class="btn-jelly py-3.5 px-5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">
@@ -708,192 +708,208 @@
   ========================================================== -->
   <script>
     // ---------------------------------------------------------
-    // 0. 공식 마스코트 '수호천사 뀽이' 풀 캐릭터 SVG 일러스트 생성기
+    // 1. 공식 마스코트 '수호천사 뀽이' SVG & 응원 대사
     // ---------------------------------------------------------
-    function getKkyungMascotSVG(className = "w-full h-full", pxSize = 140) {
+    function getKkyungMascotSVG(className = "w-16 h-16", size = 64) {
       return `
-        <svg viewBox="0 0 140 140" width="${pxSize}" height="${pxSize}" class="${className}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <circle cx="70" cy="74" r="56" fill="#FEF3C7" opacity="0.65" />
-          <circle cx="70" cy="74" r="44" fill="#FFE4E6" opacity="0.55" />
-
-          <!-- 왼쪽 천사 날개 -->
-          <path d="M43 73 C22 60, 9 71, 16 86 C10 95, 18 107, 30 104 C35 112, 47 109, 51 99 Z"
-                fill="#FFFFFF" stroke="#FDA4AF" stroke-width="2.6" stroke-linejoin="round" />
-          <path d="M41 80 C27 73, 19 80, 23 89" fill="none" stroke="#FECDD3" stroke-width="2" stroke-linecap="round" />
-
-          <!-- 오른쪽 천사 날개 -->
-          <path d="M97 73 C118 60, 131 71, 124 86 C130 95, 122 107, 110 104 C105 112, 93 109, 89 99 Z"
-                fill="#FFFFFF" stroke="#FDA4AF" stroke-width="2.6" stroke-linejoin="round" />
-          <path d="M99 80 C113 73, 121 80, 117 89" fill="none" stroke="#FECDD3" stroke-width="2" stroke-linecap="round" />
-
-          <!-- 황금 천사 링 & 미니 별 -->
-          <ellipse cx="70" cy="20" rx="22" ry="6.2" fill="none" stroke="#F59E0B" stroke-width="3.2" />
-          <ellipse cx="70" cy="20" rx="22" ry="6.2" fill="none" stroke="#FDE68A" stroke-width="1.5" />
-          <polygon points="70,7 73,14 81,14 75,19 77,26 70,22 63,26 65,19 59,14 67,14"
-                   fill="#FDE047" stroke="#F59E0B" stroke-width="1.5" stroke-linejoin="round" />
-
-          <!-- 옷 & 발 -->
-          <ellipse cx="58" cy="119" rx="7" ry="4.5" fill="#FDBA74" stroke="#EA580C" stroke-width="1.5" />
-          <ellipse cx="82" cy="119" rx="7" ry="4.5" fill="#FDBA74" stroke="#EA580C" stroke-width="1.5" />
-          <path d="M46 84 C46 75, 94 75, 94 84 L100 115 C100 120, 40 120, 40 115 Z"
-                fill="#E0F2FE" stroke="#38BDF8" stroke-width="2.4" stroke-linejoin="round" />
-          <path d="M56 80 L70 117 L84 80 Z" fill="#FFFFFF" />
-          <polygon points="70,86 72,90 76,90 73,93 74,97 70,95 66,97 67,93 64,90 68,90"
-                   fill="#FBBF24" stroke="#D97706" stroke-width="1" />
-
-          <!-- 왼손 -->
-          <circle cx="46" cy="96" r="5.2" fill="#FFE8DC" stroke="#FDBA74" stroke-width="1.6" />
-
-          <!-- 머리 & 얼굴 -->
-          <circle cx="70" cy="58" r="28" fill="#DDD6FE" stroke="#8B5CF6" stroke-width="2.2" />
-          <ellipse cx="70" cy="61" rx="23" ry="20" fill="#FFE8DC" stroke="#FDBA74" stroke-width="1.8" />
-          <path d="M46 57 C46 39, 94 39, 94 57 C89 51, 83 51, 79 56 C75 49, 67 49, 63 56 C58 50, 51 51, 46 57 Z"
-                fill="#E9D5FF" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round" />
-          <polygon points="88,45 90,49 94,49 91,52 92,56 88,53 84,56 85,52 82,49 86,49"
-                   fill="#FDE047" stroke="#D97706" stroke-width="1.2" />
-
-          <!-- 눈 -->
-          <ellipse cx="60" cy="61" rx="3.7" ry="4.5" fill="#3B2F4A" />
-          <circle cx="58.8" cy="59.4" r="1.5" fill="#FFFFFF" />
-          <circle cx="61.3" cy="62.3" r="0.85" fill="#FFFFFF" />
-
-          <ellipse cx="80" cy="61" rx="3.7" ry="4.5" fill="#3B2F4A" />
-          <circle cx="78.8" cy="59.4" r="1.5" fill="#FFFFFF" />
-          <circle cx="81.3" cy="62.3" r="0.85" fill="#FFFFFF" />
-
-          <!-- 볼 & 입 -->
-          <ellipse cx="52.5" cy="66.5" rx="4.4" ry="2.5" fill="#FDA4AF" opacity="0.8" />
-          <ellipse cx="87.5" cy="66.5" rx="4.4" ry="2.5" fill="#FDA4AF" opacity="0.8" />
-          <path d="M66.2 67.5 Q70 72 73.8 67.5" fill="none" stroke="#9F1239" stroke-width="2.1" stroke-linecap="round" />
-
-          <!-- 별 요술봉 -->
-          <line x1="92" y1="106" x2="116" y2="65" stroke="#F59E0B" stroke-width="3.6" stroke-linecap="round" />
-          <circle cx="93" cy="96" r="5.2" fill="#FFE8DC" stroke="#FDBA74" stroke-width="1.6" />
-          <polygon points="117,51 120.5,59 129,59 122,64 124.5,72 117,67 109.5,72 112,64 105,59 113.5,59"
-                   fill="#FB7185" stroke="#E11D48" stroke-width="1.6" stroke-linejoin="round" />
-          <circle cx="128" cy="47" r="2.1" fill="#FBBF24" />
-          <circle cx="104" cy="47" r="1.7" fill="#38BDF8" />
-          <circle cx="132" cy="70" r="1.8" fill="#FB7185" />
+        <svg viewBox="0 0 120 120" width="${size}" height="${size}" class="${className}" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="kkyungGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#FEF3C7" stop-opacity="0.95" />
+              <stop offset="100%" stop-color="#FCE7F3" stop-opacity="0" />
+            </radialGradient>
+            <linearGradient id="kkyungRobe" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#E0F2FE" />
+              <stop offset="100%" stop-color="#BAE6FD" />
+            </linearGradient>
+          </defs>
+          <!-- 배경 후광 -->
+          <circle cx="60" cy="62" r="52" fill="url(#kkyungGlow)" />
+          <!-- 폭신폭신 구름 날개 (좌/우) -->
+          <path d="M35 66 C18 56, 12 72, 23 80 C16 88, 28 96, 39 87 Z" fill="#FFFFFF" stroke="#F9A8D4" stroke-width="2.5" stroke-linejoin="round" />
+          <path d="M85 66 C102 56, 108 72, 97 80 C104 88, 92 96, 81 87 Z" fill="#FFFFFF" stroke="#F9A8D4" stroke-width="2.5" stroke-linejoin="round" />
+          <!-- 천사 망토 몸통 -->
+          <path d="M40 74 Q60 66 80 74 L86 102 Q60 108 34 102 Z" fill="url(#kkyungRobe)" stroke="#38BDF8" stroke-width="2.5" stroke-linejoin="round" />
+          <!-- 가슴 중앙 별 브로치 -->
+          <polygon points="60,77 62.5,82.5 68.5,83.2 64,87.2 65.2,93 60,90 54.8,93 56,87.2 51.5,83.2 57.5,82.5" fill="#FBBF24" stroke="#D97706" stroke-width="1.2" />
+          <!-- 귀여운 발 -->
+          <ellipse cx="50" cy="104" rx="7" ry="4" fill="#FDBA74" stroke="#EA580C" stroke-width="1.5" />
+          <ellipse cx="70" cy="104" rx="7" ry="4" fill="#FDBA74" stroke="#EA580C" stroke-width="1.5" />
+          <!-- 보라빛 후드 & 얼굴 -->
+          <circle cx="60" cy="50" r="24" fill="#C4B5FD" stroke="#8B5CF6" stroke-width="2.5" />
+          <circle cx="60" cy="52" r="18" fill="#FFF7ED" stroke="#FDBA74" stroke-width="1.8" />
+          <!-- 반짝이는 눈 & 볼터치 & 웃는 입 -->
+          <circle cx="53" cy="50" r="2.8" fill="#312E81" />
+          <circle cx="52" cy="49" r="1" fill="#FFFFFF" />
+          <circle cx="67" cy="50" r="2.8" fill="#312E81" />
+          <circle cx="66" cy="49" r="1" fill="#FFFFFF" />
+          <ellipse cx="48" cy="55" rx="3.4" ry="2" fill="#FDA4AF" opacity="0.85" />
+          <ellipse cx="72" cy="55" rx="3.4" ry="2" fill="#FDA4AF" opacity="0.85" />
+          <path d="M55 57 Q60 62 65 57" fill="none" stroke="#E11D48" stroke-width="2.2" stroke-linecap="round" />
+          <!-- 머리핀 별 -->
+          <polygon points="73,36 74.8,39.8 79,40.3 75.8,43.2 76.7,47.3 73,45.2 69.3,47.3 70.2,43.2 67,40.3 71.2,39.8" fill="#FDE047" stroke="#EAB308" stroke-width="1.2" />
+          <!-- 머리 위 황금 천사 링 -->
+          <ellipse cx="60" cy="20" rx="17" ry="5.5" fill="none" stroke="#F59E0B" stroke-width="3.5" />
+          <ellipse cx="60" cy="20" rx="17" ry="5.5" fill="none" stroke="#FEF08A" stroke-width="1.4" />
+          <!-- 왼손/오른손 & 별 요술봉 -->
+          <circle cx="38" cy="83" r="5" fill="#FFF7ED" stroke="#FDBA74" stroke-width="1.8" />
+          <line x1="82" y1="95" x2="98" y2="62" stroke="#F59E0B" stroke-width="3.2" stroke-linecap="round" />
+          <polygon points="99,51 102,58 109.5,58.8 103.8,63.8 105.5,71 99,67 92.5,71 94.2,63.8 88.5,58.8 96,58" fill="#FB7185" stroke="#E11D48" stroke-width="1.5" />
+          <circle cx="82" cy="83" r="5" fill="#FFF7ED" stroke="#FDBA74" stroke-width="1.8" />
+          <!-- 반짝이 포인트 -->
+          <circle cx="22" cy="36" r="2.2" fill="#FBBF24" />
+          <circle cx="104" cy="42" r="2" fill="#38BDF8" />
         </svg>`;
     }
 
-    const KKYUNG_CHEER_QUOTES = [
-      "비밀은 꼭 지켜야 해 뀽! 친구가 눈치채지 못하게 살금살금 도와주자 뀽! 🤫",
-      "착한 일을 할 때마다 밤하늘 별자리가 반짝반짝 채워질 거야 뀽! ⭐✨",
-      "친구 이름을 잊어버렸다면 [👀 비밀 친구 이름 1초 살짝 보기]를 눌러봐 뀽! 🪄",
-      "선생님이랑 1학년 천사들 모두 뀽이가 구름 날개로 응원하고 있어 뀽! 💖",
-      "고운 말 한마디, 작은 배려 하나가 최고의 수호천사 선물이야 뀽! 🌟"
+    const KKYUNG_QUOTES = [
+      "샬랄라~ 친구가 모르게 책상을 살짝 정리해 주면 어떨까 뀽? ✨",
+      "고운 말 한마디가 밤하늘의 가장 큰 별을 반짝이게 해 뀽! 🌟",
+      "쉿! 내가 누구의 수호천사인지 끝까지 비밀 지킬 수 있지 뀽? 🤫",
+      "친구가 혼자 있을 때 먼저 다가가서 같이 놀자고 해보자 뀽! 💖",
+      "뽀로롱~ 오늘도 착한 마음씨로 별자리 한 칸 채워보자 뀽! 🪄"
     ];
-    let kkyungQuoteIdx = 0;
 
     window.pokeKkyungMascot = function() {
       playPeekSound();
       const bubble = document.getElementById("kkyung-speech-bubble");
-      if (bubble) {
-        bubble.innerHTML = KKYUNG_CHEER_QUOTES[kkyungQuoteIdx % KKYUNG_CHEER_QUOTES.length];
-        kkyungQuoteIdx += 1;
-        bubble.classList.remove("animate-pop");
-        void bubble.offsetWidth;
-        bubble.classList.add("animate-pop");
-      }
+      if (!bubble) return;
+      const randomQuote = KKYUNG_QUOTES[Math.floor(Math.random() * KKYUNG_QUOTES.length)];
+      bubble.innerHTML = `<b class="text-rose-600">뀽이의 응원:</b> ${randomQuote}`;
+      bubble.classList.remove("animate-pop");
+      void bubble.offsetWidth;
+      bubble.classList.add("animate-pop");
     };
 
     // ---------------------------------------------------------
-    // 1. 1학년 맞춤 귀여운 비밀 별명 40종 사전
+    // 2. 초등학교 1학년 맞춤 비밀 별명 40종 & 별자리 3종 데이터
     // ---------------------------------------------------------
     const CUTE_NICKNAMES = [
       { nickname: "반짝이는 해바라기", emoji: "🌻" },
-      { nickname: "용감한 아기여우", emoji: "🦊" },
-      { nickname: "포근한 구름토끼", emoji: "🐰" },
-      { nickname: "달콤한 딸기케이크", emoji: "🍰" },
-      { nickname: "씩씩한 아기공룡", emoji: "🦕" },
+      { nickname: "달콤한 딸기우유", emoji: "🍓" },
+      { nickname: "포근한 아기구름", emoji: "☁️" },
+      { nickname: "용감한 아기사자", emoji: "🦁" },
       { nickname: "초롱초롱 별사탕", emoji: "⭐" },
-      { nickname: "작은 숲속 사슴", emoji: "🦌" },
-      { nickname: "도토리 아기다람쥐", emoji: "🐿️" },
-      { nickname: "동글동글 아기곰", emoji: "🐻" },
-      { nickname: "푸른바다 아기고래", emoji: "🐳" },
-      { nickname: "노란 삐약병아리", emoji: "🐤" },
-      { nickname: "무지개 솜사탕구름", emoji: "🌈" },
-      { nickname: "수줍은 대나무판다", emoji: "🐼" },
-      { nickname: "날쌘 파도돌고래", emoji: "🐬" },
-      { nickname: "몽글몽글 아기양", emoji: "🐑" },
-      { nickname: "달콤한 꽃밭꿀벌", emoji: "🐝" },
-      { nickname: "초록 등껍질거북", emoji: "🐢" },
-      { nickname: "씩씩한 갈기아기사자", emoji: "🦁" },
-      { nickname: "말랑말랑 카라멜푸딩", emoji: "🍮" },
-      { nickname: "뒤뚱뒤뚱 꼬마펭귄", emoji: "🐧" },
-      { nickname: "분홍빛 플라밍고", emoji: "🦩" },
-      { nickname: "팔랑팔랑 요정나비", emoji: "🦋" },
-      { nickname: "통통 조개아기수달", emoji: "🦦" },
-      { nickname: "하얀 겨울눈사람", emoji: "⛄" },
-      { nickname: "새콤달콤 레몬사탕", emoji: "🍋" },
-      { nickname: "반짝반짝 무지개보석", emoji: "💎" },
-      { nickname: "유칼립투스 아기코알라", emoji: "🐨" },
-      { nickname: "행복한 파랑새", emoji: "🐦" },
-      { nickname: "복숭아 탱글젤리", emoji: "🍑" },
-      { nickname: "꿈꾸는 노란초승달", emoji: "🌙" },
-      { nickname: "슝슝 꼬마우주선", emoji: "🚀" },
-      { nickname: "꼬리흔드는 강아지", emoji: "🐶" },
-      { nickname: "야옹야옹 아기고양이", emoji: "🐱" },
-      { nickname: "바삭바삭 초코쿠키", emoji: "🍪" },
-      { nickname: "행운의 네잎클로버", emoji: "🍀" },
-      { nickname: "빨간 점박이무당벌레", emoji: "🐞" },
-      { nickname: "무지개뿔 아기유니콘", emoji: "🦄" },
-      { nickname: "보랏빛 포도알사탕", emoji: "🍇" },
-      { nickname: "햇살가득 민들레", emoji: "🌼" },
-      { nickname: "깡총깡총 하얀눈토끼", emoji: "🐇" }
+      { nickname: "깡총깡총 흰토끼", emoji: "🐰" },
+      { nickname: "웃음가득 무지개", emoji: "🌈" },
+      { nickname: "싱그러운 초록새싹", emoji: "🌱" },
+      { nickname: "다정한 아기펭귄", emoji: "🐧" },
+      { nickname: "말랑말랑 복숭아", emoji: "🍑" },
+      { nickname: "씩씩한 꼬마기차", emoji: "🚂" },
+      { nickname: "노래하는 파랑새", emoji: "🐦" },
+      { nickname: "따뜻한 햇살미소", emoji: "☀️" },
+      { nickname: "귀여운 아기코알라", emoji: "🐨" },
+      { nickname: "상큼한 레몬사탕", emoji: "🍋" },
+      { nickname: "두둥실 종이비행기", emoji: "✈️" },
+      { nickname: "행복한 네잎클로버", emoji: "🍀" },
+      { nickname: "장난꾸러기 다람쥐", emoji: "🐿️" },
+      { nickname: "바다의 아기고래", emoji: "🐳" },
+      { nickname: "포동포동 곰돌이", emoji: "🐻" },
+      { nickname: "반짝반짝 은하수", emoji: "🌌" },
+      { nickname: "향기로운 벚꽃잎", emoji: "🌸" },
+      { nickname: "날쌘돌이 아기치타", emoji: "🐆" },
+      { nickname: "달콤한 꿀벌친구", emoji: "🐝" },
+      { nickname: "초록빛 아기거북", emoji: "🐢" },
+      { nickname: "통통튀는 축구공", emoji: "⚽" },
+      { nickname: "신비로운 유니콘", emoji: "🦄" },
+      { nickname: "노랑노랑 병아리", emoji: "🐥" },
+      { nickname: "시원한 수박화채", emoji: "🍉" },
+      { nickname: "착한마음 아기천사", emoji: "👼" },
+      { nickname: "알록달록 크레파스", emoji: "🖍️" },
+      { nickname: "퐁당퐁당 물방울", emoji: "💧" },
+      { nickname: "산뜻한 민트초코", emoji: "🍦" },
+      { nickname: "듬직한 아기코끼리", emoji: "🐘" },
+      { nickname: "반가운 초승달", emoji: "🌙" },
+      { nickname: "귀염둥이 아기판다", emoji: "🐼" },
+      { nickname: "빨간모자 버섯요정", emoji: "🍄" },
+      { nickname: "춤추는 나비친구", emoji: "🦋" },
+      { nickname: "황금빛 별똥별", emoji: "🌠" },
+      { nickname: "몽글몽글 솜사탕", emoji: "🍭" }
     ];
 
-    // ---------------------------------------------------------
-    // 2. 별자리 활동기록판 좌표
-    // ---------------------------------------------------------
-    const CONSTELLATION_KEYS = ["heart", "crown", "dipper"];
     const CONSTELLATIONS = {
       heart: {
         title: "💖 두근두근 하트 별자리",
         anchors: [
-          { x: 204, y: 182 }, { x: 124, y: 140 }, { x: 74, y: 88 }, { x: 96, y: 40 },
-          { x: 164, y: 38 }, { x: 220, y: 78 }, { x: 276, y: 38 }, { x: 344, y: 40 },
-          { x: 366, y: 88 }, { x: 316, y: 140 }, { x: 236, y: 182 }
+          { x: 220, y: 176 },
+          { x: 112, y: 128 },
+          { x: 86, y: 74 },
+          { x: 132, y: 40 },
+          { x: 186, y: 54 },
+          { x: 220, y: 82 },
+          { x: 254, y: 54 },
+          { x: 308, y: 40 },
+          { x: 354, y: 74 },
+          { x: 328, y: 128 },
+          { x: 220, y: 176 }
         ]
       },
       crown: {
-        title: "👑 반짝반짝 왕관·별 자리",
+        title: "👑 반짝반짝 왕관 별자리",
         anchors: [
-          { x: 52, y: 168 }, { x: 84, y: 66 }, { x: 144, y: 126 }, { x: 220, y: 38 },
-          { x: 296, y: 126 }, { x: 356, y: 66 }, { x: 388, y: 168 }, { x: 220, y: 184 },
-          { x: 96, y: 174 }
+          { x: 74, y: 164 },
+          { x: 64, y: 72 },
+          { x: 142, y: 116 },
+          { x: 220, y: 44 },
+          { x: 298, y: 116 },
+          { x: 376, y: 72 },
+          { x: 366, y: 164 },
+          { x: 74, y: 164 }
         ]
       },
       dipper: {
-        title: "🌌 밤하늘 북두칠성·백조 자리",
+        title: "🌌 밤하늘 북두칠성 자리",
         anchors: [
-          { x: 46, y: 162 }, { x: 108, y: 126 }, { x: 174, y: 108 }, { x: 242, y: 96 },
-          { x: 272, y: 46 }, { x: 374, y: 62 }, { x: 356, y: 142 }, { x: 262, y: 132 }
+          { x: 58, y: 76 },
+          { x: 126, y: 62 },
+          { x: 188, y: 86 },
+          { x: 244, y: 112 },
+          { x: 256, y: 172 },
+          { x: 356, y: 166 },
+          { x: 376, y: 102 },
+          { x: 244, y: 112 }
         ]
       }
     };
+    const CONSTELLATION_KEYS = Object.keys(CONSTELLATIONS);
 
     // ---------------------------------------------------------
-    // 3. Google Apps Script 백엔드 코드
+    // 3. Google Apps Script 백엔드 코드 (CORS & 리다이렉트 우회 JSONP + POST 양방향 지원)
     // ---------------------------------------------------------
     const APPS_SCRIPT_CODE = [
       "/**",
-      " * 우리 반 수호천사 마니또 게임 - Google Apps Script 백엔드",
+      " * 우리 반 수호천사 마니또 게임 - Google Apps Script 백엔드 (JSONP + POST 지원)",
       " * 1) 구글 시트 > 확장 프로그램 > Apps Script 에 붙여넣고 저장",
-      " * 2) 배포 > 새 배포 > 유형: 웹 앱 (액세스 권한: 모든 사용자)",
+      " * 2) 배포 > 새 배포 (또는 배포 관리 > 수정 > 새 버전) > 액세스 권한: [모든 사용자]",
       " */",
       "function doGet(e) {",
       "  var params = (e && e.parameter) || {};",
       "  var room = params.room || 'CLASS1';",
-      "  return jsonResponse(getRoomData(room));",
+      "  var callback = params.callback || '';",
+      "",
+      "  if (params.action) {",
+      "    var data = {};",
+      "    if (params.payload) {",
+      "      try { data = JSON.parse(params.payload); } catch (err) {}",
+      "    }",
+      "    data.action = params.action;",
+      "    data.room = room;",
+      "    if (params.angel) data.angel = params.angel;",
+      "    return outputResponse(processWriteAction(data), callback);",
+      "  }",
+      "",
+      "  return outputResponse(getRoomData(room), callback);",
       "}",
       "",
       "function doPost(e) {",
+      "  var data = JSON.parse(e.postData.contents);",
+      "  return outputResponse(processWriteAction(data), '');",
+      "}",
+      "",
+      "function processWriteAction(data) {",
       "  var lock = LockService.getScriptLock();",
       "  lock.waitLock(10000);",
       "  try {",
-      "    var data = JSON.parse(e.postData.contents);",
       "    var room = data.room || 'CLASS1';",
       "    var sheet = getOrCreateSheet(room);",
       "",
@@ -904,7 +920,7 @@
       "      (data.assignments || []).forEach(function(item, idx) {",
       "        sheet.appendRow([idx + 1, item.angel, item.target, item.nickname, item.emoji, item.drawn ? '완료' : '대기', data.round || 1, now]);",
       "      });",
-      "      return jsonResponse({ ok: true });",
+      "      return { ok: true };",
       "    }",
       "",
       "    if (data.action === 'markDrawn' || data.action === 'resetStudent') {",
@@ -915,10 +931,10 @@
       "        if (String(values[i][1]).trim() === String(data.angel).trim()) {",
       "          sheet.getRange(i + 1, 6).setValue(targetState);",
       "          sheet.getRange(i + 1, 8).setValue(now2);",
-      "          return jsonResponse({ ok: true });",
+      "          return { ok: true };",
       "        }",
       "      }",
-      "      return jsonResponse({ ok: false, error: 'not_found' });",
+      "      return { ok: false, error: 'not_found' };",
       "    }",
       "",
       "    if (data.action === 'resetSpins') {",
@@ -929,16 +945,16 @@
       "        sheet.getRange(r + 1, 6).setValue('대기');",
       "        sheet.getRange(r + 1, 8).setValue(now3);",
       "      }",
-      "      return jsonResponse({ ok: true });",
+      "      return { ok: true };",
       "    }",
       "",
       "    if (data.action === 'clearAll') {",
       "      sheet.clear();",
       "      sheet.appendRow(['번호', '수호천사', '마니또대상', '비밀별명', '이모지', '뽑기상태', '회차', '업데이트시각']);",
-      "      return jsonResponse({ ok: true });",
+      "      return { ok: true };",
       "    }",
       "",
-      "    return jsonResponse({ ok: false, error: 'unknown_action' });",
+      "    return { ok: false, error: 'unknown_action' };",
       "  } finally {",
       "    lock.releaseLock();",
       "  }",
@@ -971,8 +987,13 @@
       "  return { ok: true, room: room, round: round, assignments: list };",
       "}",
       "",
-      "function jsonResponse(obj) {",
-      "  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);",
+      "function outputResponse(obj, callback) {",
+      "  var jsonStr = JSON.stringify(obj);",
+      "  if (callback) {",
+      "    var safeCb = String(callback).replace(/[^a-zA-Z0-9_$.]/g, '');",
+      "    return ContentService.createTextOutput(safeCb + '(' + jsonStr + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);",
+      "  }",
+      "  return ContentService.createTextOutput(jsonStr).setMimeType(ContentService.MimeType.JSON);",
       "}"
     ].join("\n");
 
@@ -1493,7 +1514,7 @@
       const statusBadgeHtml = isChecking
         ? `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900">🔄 시트 통신 확인 중...</span>`
         : isError
-          ? `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-200 text-rose-900">⚠️ 시트 응답 오류 — [모든 사용자] 배포 권한 확인</span>`
+          ? `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-200 text-rose-900">⚠️ 시트 응답 오류 — Apps Script [새 버전] 재배포 확인</span>`
           : `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-900">🔒 비밀번호 잠금 보호 중${state.lastSyncTimeText ? ` · 동기화 ${state.lastSyncTimeText}` : ""}</span>`;
 
       card.innerHTML = `
@@ -1503,13 +1524,13 @@
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2 flex-wrap">
                 <h2 class="font-cute text-lg sm:text-xl ${isError ? "text-rose-950" : "text-emerald-950"}">
-                  ${isError ? "구글 시트 주소를 저장했지만 응답을 확인하지 못했어요!" : "배포용 세이브포인트 연결됨! (GitHub Pages + Google Sheets)"}
+                  ${isError ? "시트 주소는 저장되었지만 브라우저/방화벽 통신이 차단되었어요!" : "배포용 세이브포인트 연결됨! (GitHub Pages + Google Sheets)"}
                 </h2>
                 ${statusBadgeHtml}
               </div>
               <p class="text-xs ${isError ? "text-rose-800" : "text-emerald-800"} mt-0.5">
                 ${isError
-                  ? "Apps Script 웹 앱 배포 시 <b>액세스 권한을 [모든 사용자]</b>로 설정했는지 확인한 뒤 <b>[🔄 시트 불러오기]</b>를 눌러주세요 뀽!"
+                  ? "아래 <b>[📜 Apps Script 코드 복사]</b>로 새 코드를 붙여넣고 <b>[배포 → 배포 관리 → ✏️ → 새 버전 → 배포]</b>를 눌러주시면 방화벽/CORS 차단을 우회해 바로 연결돼요 뀽!"
                   : "아래 <b>세이브 링크</b>를 복사하거나 즐겨찾기해 두시면 어느 PC에서 열어도 우리 반 시트가 자동 연결돼요 뀽!"}
               </p>
               <div class="mt-2 bg-white/95 px-3 py-2 rounded-xl border ${isError ? "border-rose-200" : "border-emerald-200"} text-[11px] text-slate-600 truncate select-all">
@@ -1596,7 +1617,6 @@
         }
         if (valid) return shuffled;
       }
-      // 폴백: 1칸 회전 순열 (100% 자기 자신 회피 보장)
       return names.map((_, idx) => names[(idx + 1) % n]);
     }
 
@@ -1665,14 +1685,7 @@
           showToast("모든 친구의 돌림판 상태가 '대기 중'으로 초기화되었어요 뀽!", "🔄");
 
           if (state.appsScriptUrl) {
-            try {
-              await fetch(state.appsScriptUrl, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ action: "resetSpins", room: state.room })
-              });
-            } catch (e) {}
+            await sendWriteToCloud("resetSpins");
           }
         }
       );
@@ -1705,14 +1718,7 @@
           showToast("명단과 배정표가 깨끗하게 초기화되었어요 뀽!", "🧹");
 
           if (state.appsScriptUrl) {
-            try {
-              await fetch(state.appsScriptUrl, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ action: "clearAll", room: state.room })
-              });
-            } catch (e) {}
+            await sendWriteToCloud("clearAll");
           }
         }
       );
@@ -1731,18 +1737,7 @@
       showToast(`${angelName} 친구의 뽑기 상태를 '대기 중'으로 되돌렸어요 뀽!`, "🔄");
 
       if (state.appsScriptUrl) {
-        try {
-          await fetch(state.appsScriptUrl, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({
-              action: "resetStudent",
-              room: state.room,
-              angel: angelName
-            })
-          });
-        } catch (e) {}
+        await sendWriteToCloud("resetStudent", { angel: angelName });
       }
     };
 
@@ -1946,7 +1941,6 @@
       const subtext = document.getElementById("device-lock-subtext");
       const nameInput = document.getElementById("student-name-input");
 
-      // 배정 목록이 비었거나 해당 이름이 목록에 없으면 잠금 해제
       if (state.lockedStudentName && !state.assignments.some((a) => a.angel === state.lockedStudentName)) {
         clearDeviceStudentLock();
       }
@@ -2141,7 +2135,6 @@
 
       const finalY = 20 - (TOTAL_ITEMS - 1) * ITEM_HEIGHT;
 
-      // 틱 효과음 타이머
       let tickStep = 0;
       const tickInterval = setInterval(() => {
         tickStep += 1;
@@ -2201,7 +2194,6 @@
       document.getElementById("res-target-nickname").textContent = assignment.nickname;
       document.getElementById("res-target-realname").textContent = assignment.target;
 
-      // 1초 살짝 보기 오버레이 초기화
       const overlay = document.getElementById("secret-name-overlay");
       const nickLayer = document.getElementById("nickname-display-layer");
       if (overlay) overlay.classList.add("hidden");
@@ -2541,19 +2533,13 @@
     };
 
     // ---------------------------------------------------------
-    // 15. 로컬 스토리지 & 구글 시트 클라우드 동기화
+    // 14. 로컬 저장소 영구 보존 & 학급 방 코드 변경
     // ---------------------------------------------------------
-    function getLocalStorageKey() {
-      return `manito_angel_v4_${state.room}`;
-    }
-
     function saveToLocalStorage() {
       try {
-        if (state.appsScriptUrl) {
-          localStorage.setItem(GLOBAL_SHEET_STORAGE_KEY, state.appsScriptUrl);
-        }
+        const roomKey = `manito_angel_v4_${state.room}`;
         localStorage.setItem(
-          getLocalStorageKey(),
+          roomKey,
           JSON.stringify({
             room: state.room,
             round: state.round,
@@ -2561,51 +2547,60 @@
             appsScriptUrl: state.appsScriptUrl
           })
         );
+        if (state.appsScriptUrl) {
+          localStorage.setItem(GLOBAL_SHEET_STORAGE_KEY, state.appsScriptUrl);
+        }
       } catch (e) {}
     }
 
     function loadFromLocalStorage() {
-      let loadedRoomData = false;
+      let loadedAny = false;
       try {
-        const raw = localStorage.getItem(getLocalStorageKey());
+        if (!state.appsScriptUrl) {
+          const globalUrl = localStorage.getItem(GLOBAL_SHEET_STORAGE_KEY);
+          if (globalUrl) {
+            state.appsScriptUrl = globalUrl.trim();
+            loadedAny = true;
+          }
+        }
+        const roomKey = `manito_angel_v4_${state.room}`;
+        const raw = localStorage.getItem(roomKey);
         if (raw) {
           const parsed = JSON.parse(raw);
-          if (parsed && Array.isArray(parsed.assignments)) {
+          if (!state.appsScriptUrl && parsed.appsScriptUrl) {
+            state.appsScriptUrl = String(parsed.appsScriptUrl).trim();
+            loadedAny = true;
+          }
+          if (state.assignments.length === 0 && Array.isArray(parsed.assignments) && parsed.assignments.length > 0) {
             state.round = parsed.round || 1;
-            state.assignments = parsed.assignments;
-            if (!state.appsScriptUrl && parsed.appsScriptUrl) {
-              state.appsScriptUrl = parsed.appsScriptUrl;
-            }
-            loadedRoomData = true;
+            const shuffledKeys = shuffleArray(CONSTELLATION_KEYS);
+            state.assignments = parsed.assignments.map((a, idx) => ({
+              angel: a.angel,
+              target: a.target,
+              nickname: a.nickname,
+              emoji: a.emoji || "👼",
+              drawn: Boolean(a.drawn),
+              constellationKey: a.constellationKey || shuffledKeys[idx % shuffledKeys.length]
+            }));
+            loadedAny = true;
           }
         }
       } catch (e) {}
-
-      // 방 코드가 바뀌었거나 기본 URL로 재접속해도 기기 전체에 저장된 시트 URL을 항상 복원
-      if (!state.appsScriptUrl) {
-        try {
-          const globalUrl = localStorage.getItem(GLOBAL_SHEET_STORAGE_KEY);
-          if (globalUrl && globalUrl.trim()) {
-            state.appsScriptUrl = globalUrl.trim();
-          }
-        } catch (e) {}
-      }
-
-      return loadedRoomData;
+      return loadedAny;
     }
 
-    window.updateRoomCode = async function(newCode) {
-      const cleaned = (newCode || "").trim().replace(/[^a-zA-Z0-9가-힣_-]/g, "") || "CLASS1";
+    window.updateRoomCode = async function(rawVal) {
+      const cleaned = String(rawVal || "").trim().replace(/[^a-zA-Z0-9가-힣_-]/g, "") || "CLASS1";
       state.room = cleaned;
-      document.getElementById("room-code-input").value = cleaned;
-      document.getElementById("room-badge").textContent = `방 코드: ${cleaned}`;
+      const roomInput = document.getElementById("room-code-input");
+      const roomBadge = document.getElementById("room-badge");
+      if (roomInput) roomInput.value = cleaned;
+      if (roomBadge) roomBadge.textContent = `방 코드: ${cleaned}`;
 
+      state.assignments = [];
+      state.round = 1;
       loadDeviceStudentLock();
-      const loadedLocal = loadFromLocalStorage();
-      if (!loadedLocal) {
-        state.assignments = [];
-        state.round = 1;
-      }
+      loadFromLocalStorage();
 
       const nameInput = document.getElementById("student-names-input");
       if (nameInput) {
@@ -2617,20 +2612,145 @@
       renderAllViews();
 
       if (state.appsScriptUrl) {
+        state.sheetConnectionHealth = "checking";
+        renderSavePointBanner();
         await pullFromGoogleSheets(true);
       }
-      showToast(`학급 방 코드가 '${cleaned}'(으)로 전환되었어요 뀽!`, "🏫");
+      showToast(`학급 방 코드가 [${cleaned}]로 변경되었어요 뀽!`, "🏫");
     };
+
+    // ---------------------------------------------------------
+    // 15. Google Sheets 양방향 동기화 (JSONP + POST)
+    // ---------------------------------------------------------
+    function requestSheetsJsonp(queryParamsObj, timeoutMs = 8500) {
+      return new Promise((resolve, reject) => {
+        if (!state.appsScriptUrl) {
+          reject(new Error("no_url"));
+          return;
+        }
+        const cbName = "__manitoJsonpCb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+        const script = document.createElement("script");
+        let settled = false;
+
+        const cleanup = () => {
+          if (script.parentNode) script.parentNode.removeChild(script);
+          try {
+            delete window[cbName];
+          } catch (e) {
+            window[cbName] = undefined;
+          }
+        };
+
+        const timer = setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          reject(new Error("jsonp_timeout"));
+        }, timeoutMs);
+
+        window[cbName] = (data) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          cleanup();
+          resolve(data);
+        };
+
+        script.onerror = () => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          cleanup();
+          reject(new Error("jsonp_script_error"));
+        };
+
+        const sep = state.appsScriptUrl.includes("?") ? "&" : "?";
+        const params = new URLSearchParams();
+        Object.keys(queryParamsObj || {}).forEach((k) => {
+          if (queryParamsObj[k] !== undefined && queryParamsObj[k] !== null) {
+            params.set(k, String(queryParamsObj[k]));
+          }
+        });
+        params.set("callback", cbName);
+        params.set("_t", String(Date.now()));
+
+        script.src = `${state.appsScriptUrl}${sep}${params.toString()}`;
+        document.head.appendChild(script);
+      });
+    }
+
+    async function fetchRoomDataFromCloud() {
+      // 1순위: JSONP (<script> 방식 — 브라우저 CORS 및 학교 방화벽 302 리다이렉트 차단 완벽 우회)
+      try {
+        const data = await requestSheetsJsonp({ room: state.room }, 8000);
+        if (data && data.ok && Array.isArray(data.assignments)) {
+          return data;
+        }
+      } catch (e) {}
+
+      // 2순위: 구버전 배포 스크립트 호환용 표준 fetch fallback
+      const sep = state.appsScriptUrl.includes("?") ? "&" : "?";
+      const url = `${state.appsScriptUrl}${sep}room=${encodeURIComponent(state.room)}&_t=${Date.now()}`;
+      const res = await fetch(url, { redirect: "follow", cache: "no-store" });
+      if (!res.ok) throw new Error("http_error");
+      const data = await res.json();
+      if (!data || !data.ok || !Array.isArray(data.assignments)) {
+        throw new Error("invalid_payload");
+      }
+      return data;
+    }
+
+    async function sendWriteToCloud(action, extraData = {}) {
+      if (!state.appsScriptUrl) return false;
+      const payloadObj = { action, room: state.room, ...extraData };
+      const serialized = JSON.stringify(payloadObj);
+
+      // 1순위: JSONP GET 전송 (실제 서버 {ok: true} 응답까지 검증)
+      if (serialized.length <= 3600) {
+        try {
+          const res = await requestSheetsJsonp(
+            {
+              room: state.room,
+              action,
+              angel: extraData.angel || "",
+              payload: serialized
+            },
+            9000
+          );
+          if (res && res.ok) {
+            state.sheetConnectionHealth = "connected";
+            state.lastSyncTimeText = formatNowTime();
+            renderSavePointBanner();
+            return true;
+          }
+        } catch (e) {}
+      }
+
+      // 2순위: 대용량 명단(35명 이상) 또는 구버전 스크립트용 POST 전송
+      try {
+        await fetch(state.appsScriptUrl, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: serialized
+        });
+        state.lastSyncTimeText = formatNowTime();
+        if (state.sheetConnectionHealth !== "error") {
+          state.sheetConnectionHealth = "connected";
+        }
+        renderSavePointBanner();
+        return true;
+      } catch (e) {
+        state.sheetConnectionHealth = "error";
+        renderSavePointBanner();
+        return false;
+      }
+    }
 
     async function verifyAndSyncOnConnect() {
       if (!state.appsScriptUrl) return false;
       try {
-        const sep = state.appsScriptUrl.includes("?") ? "&" : "?";
-        const url = `${state.appsScriptUrl}${sep}room=${encodeURIComponent(state.room)}&_t=${Date.now()}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("http_error");
-        const data = await res.json();
-        if (!data || !data.ok) throw new Error("invalid_payload");
+        const data = await fetchRoomDataFromCloud();
 
         state.sheetConnectionHealth = "connected";
         state.lastSyncTimeText = formatNowTime();
@@ -2667,45 +2787,20 @@
 
     async function pushToGoogleSheets(silent = false) {
       if (!state.appsScriptUrl) return;
-      try {
-        await fetch(state.appsScriptUrl, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "saveAll",
-            room: state.room,
-            round: state.round,
-            assignments: state.assignments
-          })
-        });
-        state.lastSyncTimeText = formatNowTime();
-        if (state.sheetConnectionHealth !== "error") {
-          state.sheetConnectionHealth = "connected";
-        }
-        renderSavePointBanner();
+      const ok = await sendWriteToCloud("saveAll", {
+        round: state.round,
+        assignments: state.assignments
+      });
+      if (ok) {
         if (!silent) showToast("구글 시트에 배정표가 저장되었어요 뀽!", "☁️");
-      } catch (e) {
-        state.sheetConnectionHealth = "error";
-        renderSavePointBanner();
-        if (!silent) showToast("구글 시트 전송 중 네트워크 오류가 발생했어요.", "⚠️");
+      } else {
+        if (!silent) showToast("구글 시트 전송 중 오류가 발생했어요. [새 버전] 배포를 확인해 주세요!", "⚠️");
       }
     }
 
     async function markStudentDrawnInCloud(angelName) {
       if (!state.appsScriptUrl) return;
-      try {
-        await fetch(state.appsScriptUrl, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "markDrawn",
-            room: state.room,
-            angel: angelName
-          })
-        });
-      } catch (e) {}
+      await sendWriteToCloud("markDrawn", { angel: angelName });
     }
 
     async function pullFromGoogleSheets(forceOverwriteNames = false) {
@@ -2715,14 +2810,7 @@
       }
 
       try {
-        const sep = state.appsScriptUrl.includes("?") ? "&" : "?";
-        const url = `${state.appsScriptUrl}${sep}room=${encodeURIComponent(state.room)}&_t=${Date.now()}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("http_error");
-        const data = await res.json();
-        if (!data || !data.ok || !Array.isArray(data.assignments)) {
-          throw new Error("invalid_payload");
-        }
+        const data = await fetchRoomDataFromCloud();
 
         state.sheetConnectionHealth = "connected";
         state.lastSyncTimeText = formatNowTime();
@@ -2875,7 +2963,7 @@
       if (state.appsScriptUrl) {
         state.sheetConnectionHealth = "checking";
         renderSavePointBanner();
-        await pullFromGoogleSheets(!loadedFromHash);
+        await pullFromGoogleSheets(true);
         startCloudPolling();
       }
     };
