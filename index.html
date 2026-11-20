@@ -629,6 +629,21 @@
           </button>
         </div>
 
+        <!-- 생성된 PDF 수동 다운로드/열기 안전 링크 (브라우저 팝업 차단 대비) -->
+        <div id="pdf-ready-banner" class="hidden rounded-2xl p-3.5 bg-emerald-50 border-2 border-emerald-300 flex flex-col sm:flex-row items-center justify-between gap-2.5 animate-pop">
+          <div class="text-xs sm:text-sm font-bold text-emerald-800">
+            🎉 활동기록판 PDF 파일이 완성되었어요! 자동 저장이 안 열렸다면 오른쪽 버튼을 눌러 주세요 뀽!
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <a id="pdf-manual-download-link" href="#" download="우리반_수호천사_활동기록판.pdf" class="btn-jelly px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-xs">
+              📥 PDF 다운로드
+            </a>
+            <a id="pdf-manual-open-link" href="#" target="_blank" rel="noopener noreferrer" class="btn-jelly px-4 py-2 rounded-xl bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs sm:text-sm">
+              👀 새 창에서 열기
+            </a>
+          </div>
+        </div>
+
         <!-- 3단 설정 옵션 -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-amber-100">
           <!-- 1) 별 개수 (10 / 15 / 20개) -->
@@ -2455,17 +2470,370 @@
       });
     }
 
-    async function ensurePdfLibrariesReady() {
-      if (typeof window.html2canvas === "undefined") {
-        await loadExternalScriptFallback("https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js");
+    async function ensureJsPdfReady() {
+      if (window.jspdf && window.jspdf.jsPDF) return;
+      const cdnList = [
+        "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",
+        "https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"
+      ];
+      for (const cdnUrl of cdnList) {
+        try {
+          await loadExternalScriptFallback(cdnUrl);
+          if (window.jspdf && window.jspdf.jsPDF) return;
+        } catch (e) {}
       }
-      if (!window.jspdf || !window.jspdf.jsPDF) {
-        await loadExternalScriptFallback("https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js");
-      }
-      if (typeof window.html2canvas === "undefined" || !window.jspdf || !window.jspdf.jsPDF) {
-        throw new Error("PDF 변환 라이브러리를 불러오지 못했습니다.");
-      }
+      throw new Error("PDF 생성 도구를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.");
     }
+
+    function drawRoundedRectPath(ctx, x, y, w, h, r) {
+      const radius = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y, x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x, y + h, radius);
+      ctx.arcTo(x, y + h, x, y, radius);
+      ctx.arcTo(x, y, x + w, y, radius);
+      ctx.closePath();
+    }
+
+    function drawWrappedCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 2) {
+      const chars = Array.from(String(text || ""));
+      const lines = [];
+      let current = "";
+      for (let i = 0; i < chars.length; i++) {
+        const next = current + chars[i];
+        if (ctx.measureText(next).width > maxWidth && current.length > 0) {
+          lines.push(current);
+          current = chars[i];
+          if (lines.length >= maxLines) break;
+        } else {
+          current = next;
+        }
+      }
+      if (current && lines.length < maxLines) {
+        lines.push(current);
+      }
+      lines.forEach((line, idx) => {
+        ctx.fillText(line, x, y + idx * lineHeight);
+      });
+    }
+
+    function drawKkyungOnCanvas(ctx, cx, cy, scaleSize) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      const s = scaleSize / 120;
+      ctx.scale(s, s);
+      ctx.translate(-60, -60);
+
+      // 후광
+      ctx.fillStyle = "#FEF3C7";
+      ctx.beginPath();
+      ctx.arc(60, 64, 48, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 양쪽 날개
+      ctx.fillStyle = "#FFFFFF";
+      ctx.strokeStyle = "#FBCFE8";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(27, 75, 13, 8, -0.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(93, 75, 13, 8, 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // 황금 천사 링
+      ctx.strokeStyle = "#F59E0B";
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.ellipse(60, 20, 18, 5.5, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 하늘색 망토
+      ctx.fillStyle = "#BAE6FD";
+      ctx.strokeStyle = "#38BDF8";
+      ctx.lineWidth = 2.5;
+      drawRoundedRectPath(ctx, 40, 66, 40, 31, 10);
+      ctx.fill();
+      ctx.stroke();
+
+      // 보라빛 후드 & 얼굴
+      ctx.fillStyle = "#C4B5FD";
+      ctx.strokeStyle = "#8B5CF6";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(60, 49, 21, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#FFF7ED";
+      ctx.beginPath();
+      ctx.arc(60, 51, 16, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 눈, 볼터치, 미소
+      ctx.fillStyle = "#1E293B";
+      ctx.beginPath();
+      ctx.arc(53.5, 49.5, 2.7, 0, Math.PI * 2);
+      ctx.arc(66.5, 49.5, 2.7, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#FDA4AF";
+      ctx.beginPath();
+      ctx.ellipse(49, 54, 3.2, 1.8, 0, 0, Math.PI * 2);
+      ctx.ellipse(71, 54, 3.2, 1.8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#E11D48";
+      ctx.lineWidth = 2.4;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.arc(60, 54.5, 4.5, 0.2, Math.PI - 0.2);
+      ctx.stroke();
+
+      // 별 요술봉
+      ctx.strokeStyle = "#F59E0B";
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(81, 88);
+      ctx.lineTo(97, 56);
+      ctx.stroke();
+
+      ctx.fillStyle = "#FB7185";
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const ang = -Math.PI / 2 + (i * Math.PI) / 5;
+        const rad = i % 2 === 0 ? 10 : 4.6;
+        const px = 98 + Math.cos(ang) * rad;
+        const py = 55 + Math.sin(ang) * rad;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function renderActivityCardToCanvas(item, idx, isTwoPerPage) {
+      const W = 1400;
+      const H = isTwoPerPage ? 860 : 1240;
+      const canvas = document.createElement("canvas");
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext("2d");
+
+      const cuteFont = "'Jua', 'Pretendard', 'Malgun Gothic', sans-serif";
+      const bodyFont = "'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif";
+
+      // 전체 흰 배경
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, W, H);
+
+      // 외곽 라운드 카드
+      drawRoundedRectPath(ctx, 10, 10, W - 20, H - 20, 34);
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fill();
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = "#FCD34D";
+      ctx.stroke();
+
+      const cKey = state.constellationMode === "random"
+        ? (item.constellationKey || CONSTELLATION_KEYS[idx % CONSTELLATION_KEYS.length])
+        : state.constellationMode;
+      const cInfo = CONSTELLATIONS[cKey] || CONSTELLATIONS.heart;
+
+      // 1) 상단 헤더 영역
+      drawRoundedRectPath(ctx, 42, 34, 96, 96, 24);
+      ctx.fillStyle = "#FFFBEB";
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#FDE68A";
+      ctx.stroke();
+      drawKkyungOnCanvas(ctx, 90, 82, 82);
+
+      // 별자리 종류 배지
+      ctx.font = `700 21px ${bodyFont}`;
+      const badgeTitle = String(cInfo.title || "별자리 활동판");
+      const badgeW = Math.min(340, ctx.measureText(badgeTitle).width + 36);
+      drawRoundedRectPath(ctx, 156, 36, badgeW, 36, 18);
+      ctx.fillStyle = "#FFE4E6";
+      ctx.fill();
+      ctx.fillStyle = "#BE123C";
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "left";
+      ctx.fillText(badgeTitle, 174, 55);
+
+      // 활동기록판 제목
+      ctx.font = `700 40px ${cuteFont}`;
+      ctx.fillStyle = "#1E293B";
+      ctx.fillText("수호천사 별자리 활동기록판", 156, 106);
+
+      // 우측 이름 & 비밀 별명 박스
+      const angelLabel = `수호천사 이름: ${item.angel}`;
+      ctx.font = `700 23px ${bodyFont}`;
+      const rightBoxW = Math.max(330, Math.min(440, ctx.measureText(`${item.emoji || "👼"} ${item.nickname}`).width + 190));
+      const rightBoxX = W - 42 - rightBoxW;
+
+      drawRoundedRectPath(ctx, rightBoxX, 34, rightBoxW, 44, 14);
+      ctx.fillStyle = "#FFFBEB";
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = "#FDE68A";
+      ctx.stroke();
+      ctx.fillStyle = "#334155";
+      ctx.fillText("수호천사 이름: ", rightBoxX + 18, 57);
+      const prefixW1 = ctx.measureText("수호천사 이름: ").width;
+      ctx.fillStyle = "#E11D48";
+      ctx.fillText(String(item.angel || ""), rightBoxX + 18 + prefixW1, 57);
+
+      drawRoundedRectPath(ctx, rightBoxX, 86, rightBoxW, 44, 14);
+      ctx.fillStyle = "#F0F9FF";
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = "#BAE6FD";
+      ctx.stroke();
+      ctx.font = `700 21px ${bodyFont}`;
+      ctx.fillStyle = "#475569";
+      ctx.fillText("내 비밀 별명: ", rightBoxX + 18, 109);
+      const prefixW2 = ctx.measureText("내 비밀 별명: ").width;
+      ctx.fillStyle = "#0369A1";
+      ctx.fillText(`${item.emoji || "👼"} ${item.nickname || ""}`, rightBoxX + 18 + prefixW2, 109);
+
+      // 구분선
+      ctx.strokeStyle = "#FEF3C7";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(42, 148);
+      ctx.lineTo(W - 42, 148);
+      ctx.stroke();
+
+      // 2) 미션 안내 문구 박스
+      drawRoundedRectPath(ctx, 42, 164, W - 84, 64, 18);
+      ctx.fillStyle = "#F8FAFC";
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = "#E2E8F0";
+      ctx.stroke();
+      ctx.font = `600 22px ${bodyFont}`;
+      ctx.fillStyle = "#475569";
+      const guideText = state.missionGuideText || "친구가 눈치채지 못하게 고운 말과 따뜻한 도움으로 수호천사 별자리를 완성해 보아요!";
+      drawWrappedCanvasText(ctx, guideText, 64, 197, W - 128, 28, 1);
+
+      // 3) 별자리 캔버스 영역
+      const boxX = 42;
+      const boxY = 244;
+      const boxW = W - 84;
+      const boxH = H - boxY - 104;
+
+      drawRoundedRectPath(ctx, boxX, boxY, boxW, boxH, 26);
+      ctx.fillStyle = "#FFFBEB";
+      ctx.fill();
+      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = "#FDE68A";
+      ctx.stroke();
+
+      const isClosed = Boolean(cInfo.isClosed);
+      const rawPts = samplePointsAlongPolyline(cInfo.anchors, state.starCount, isClosed);
+      const padX = 76;
+      const padTop = 34;
+      const padBottom = 56;
+      const innerW = boxW - padX * 2;
+      const innerH = boxH - padTop - padBottom;
+
+      const mappedPts = rawPts.map((p) => ({
+        x: boxX + padX + (p.x / 440) * innerW,
+        y: boxY + padTop + (p.y / 220) * innerH
+      }));
+
+      // 별자리 점선 연결선
+      const linePts = isClosed ? [...mappedPts, mappedPts[0]] : mappedPts;
+      ctx.save();
+      ctx.strokeStyle = "#FBBF24";
+      ctx.lineWidth = 5;
+      ctx.setLineDash([14, 11]);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      linePts.forEach((pt, i) => {
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // 별 도형 + 번호 + 출발!/완성!
+      const starOuterR = state.starCount >= 20 ? 22 : state.starCount >= 15 ? 26 : 30;
+      const starInnerR = starOuterR * 0.46;
+      const numFontSize = state.starCount >= 20 ? 17 : 20;
+
+      mappedPts.forEach((pt, sIdx) => {
+        ctx.save();
+        ctx.beginPath();
+        for (let k = 0; k < 10; k++) {
+          const ang = -Math.PI / 2 + (k * Math.PI) / 5;
+          const rad = k % 2 === 0 ? starOuterR : starInnerR;
+          const vx = pt.x + Math.cos(ang) * rad;
+          const vy = pt.y + Math.sin(ang) * rad;
+          if (k === 0) ctx.moveTo(vx, vy);
+          else ctx.lineTo(vx, vy);
+        }
+        ctx.closePath();
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#F59E0B";
+        ctx.stroke();
+
+        ctx.font = `700 ${numFontSize}px ${bodyFont}`;
+        ctx.fillStyle = "#B45309";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(String(sIdx + 1), pt.x, pt.y + 1);
+
+        const isStart = sIdx === 0;
+        const isEnd = sIdx === mappedPts.length - 1;
+        if (isStart || isEnd) {
+          const offsetX = isClosed ? (isStart ? -10 : 12) : 0;
+          ctx.font = `700 20px ${cuteFont}`;
+          ctx.fillStyle = isStart ? "#E11D48" : "#D97706";
+          ctx.fillText(isStart ? "출발!" : "완성!", pt.x + offsetX, pt.y + starOuterR + 22);
+        }
+        ctx.restore();
+      });
+
+      // 4) 하단 소감 & 날짜 칸
+      const footerY = H - 86;
+      const footerH = 52;
+      const colGap = 24;
+      const colW = (W - 84 - colGap) / 2;
+
+      drawRoundedRectPath(ctx, 42, footerY, colW, footerH, 16);
+      ctx.fillStyle = "#FFF1F2";
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = "#FECDD3";
+      ctx.stroke();
+      ctx.font = `700 21px ${bodyFont}`;
+      ctx.fillStyle = "#475569";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText("💖 가장 뿌듯했던 도움: ___________________________", 62, footerY + footerH / 2);
+
+      drawRoundedRectPath(ctx, 42 + colW + colGap, footerY, colW, footerH, 16);
+      ctx.fillStyle = "#FFFBEB";
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = "#FDE68A";
+      ctx.stroke();
+      ctx.fillText("🌟 완성한 날짜 / 확인: _____월 _____일    (인)", 42 + colW + colGap + 20, footerY + footerH / 2);
+
+      return canvas;
+    }
+
+    let lastGeneratedPdfUrl = "";
 
     window.downloadDirectPDF = async function() {
       if (state.assignments.length === 0) {
@@ -2479,76 +2847,45 @@
       if (btnText) btnText.textContent = "PDF 만드는 중... ⏳";
 
       try {
-        await ensurePdfLibrariesReady();
+        await ensureJsPdfReady();
 
-        if (!document.querySelector("#print-cards-container .activity-sheet-card")) {
-          renderPrintCards();
+        // 웹폰트(Jua/Pretendard) 로딩 대기 (최대 0.8초)
+        if (document.fonts && document.fonts.ready) {
+          await Promise.race([
+            document.fonts.ready,
+            new Promise((resolve) => setTimeout(resolve, 800))
+          ]);
         }
 
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-        const cards = Array.from(document.querySelectorAll("#print-cards-container .activity-sheet-card"));
-        if (cards.length === 0) {
-          throw new Error("변환할 활동기록판 카드가 없습니다.");
-        }
-
         const isTwoPerPage = state.printLayout === "2perPage";
         const pageWidth = 210;
         const pageHeight = 297;
         const margin = 10;
         const usableWidth = pageWidth - margin * 2;
 
-        for (let i = 0; i < cards.length; i++) {
-          const card = cards[i];
-          const origSvgs = Array.from(card.querySelectorAll("svg"));
-          const origSvgSizes = origSvgs.map((svg) => {
-            const rect = svg.getBoundingClientRect();
-            return {
-              w: Math.max(1, Math.round(rect.width || Number(svg.getAttribute("width")) || 440)),
-              h: Math.max(1, Math.round(rect.height || Number(svg.getAttribute("height")) || 220))
-            };
-          });
+        for (let i = 0; i < state.assignments.length; i++) {
+          const item = state.assignments[i];
+          const canvas = renderActivityCardToCanvas(item, i, isTwoPerPage);
+          const imgData = canvas.toDataURL("image/jpeg", 0.94);
 
-          const canvas = await window.html2canvas(card, {
-            scale: 1.6,
-            useCORS: true,
-            allowTaint: false,
-            backgroundColor: "#ffffff",
-            logging: false,
-            onclone: (clonedDoc, clonedEl) => {
-              clonedDoc.querySelectorAll('link[rel="stylesheet"]').forEach((linkEl) => {
-                linkEl.remove();
-              });
-              const clonedSvgs = Array.from(clonedEl.querySelectorAll("svg"));
-              clonedSvgs.forEach((svgEl, idx) => {
-                const sz = origSvgSizes[idx];
-                if (sz) {
-                  svgEl.setAttribute("width", String(sz.w));
-                  svgEl.setAttribute("height", String(sz.h));
-                  svgEl.style.width = `${sz.w}px`;
-                  svgEl.style.height = `${sz.h}px`;
-                }
-              });
-            }
-          });
-
-          const imgData = canvas.toDataURL("image/jpeg", 0.92);
           let renderW = usableWidth;
           let renderH = (canvas.height * renderW) / canvas.width;
 
           if (isTwoPerPage) {
             const slotIdx = i % 2;
             if (i > 0 && slotIdx === 0) pdf.addPage();
-            const maxHalfH = (pageHeight - margin * 2 - 8) / 2;
+            const maxHalfH = (pageHeight - margin * 2 - 10) / 2;
             if (renderH > maxHalfH) {
               renderH = maxHalfH;
               renderW = (canvas.width * renderH) / canvas.height;
             }
             const xPos = (pageWidth - renderW) / 2;
-            const yPos = slotIdx === 0 ? margin : margin + maxHalfH + 8;
+            const yPos = slotIdx === 0 ? margin : margin + maxHalfH + 10;
             pdf.addImage(imgData, "JPEG", xPos, yPos, renderW, renderH);
 
-            if (slotIdx === 0 && i < cards.length - 1) {
+            if (slotIdx === 0 && i < state.assignments.length - 1) {
               const midY = pageHeight / 2;
               pdf.setDrawColor(148, 163, 184);
               pdf.setLineDashPattern([2, 2], 0);
@@ -2563,31 +2900,47 @@
               renderW = (canvas.width * renderH) / canvas.height;
             }
             const xPos = (pageWidth - renderW) / 2;
-            pdf.addImage(imgData, "JPEG", xPos, margin, renderW, renderH);
+            const yPos = (pageHeight - renderH) / 2;
+            pdf.addImage(imgData, "JPEG", xPos, yPos, renderW, renderH);
           }
         }
 
         const fileName = `우리반_수호천사_활동기록판_${state.room}.pdf`;
         const pdfBlob = pdf.output("blob");
-        const blobUrl = URL.createObjectURL(pdfBlob);
+        if (lastGeneratedPdfUrl) {
+          try { URL.revokeObjectURL(lastGeneratedPdfUrl); } catch (e) {}
+        }
+        lastGeneratedPdfUrl = URL.createObjectURL(pdfBlob);
 
+        // 수동 다운로드/열기 안전 배너 활성화
+        const readyBanner = document.getElementById("pdf-ready-banner");
+        const manualDlLink = document.getElementById("pdf-manual-download-link");
+        const manualOpenLink = document.getElementById("pdf-manual-open-link");
+        if (manualDlLink) {
+          manualDlLink.href = lastGeneratedPdfUrl;
+          manualDlLink.download = fileName;
+        }
+        if (manualOpenLink) {
+          manualOpenLink.href = lastGeneratedPdfUrl;
+        }
+        if (readyBanner) {
+          readyBanner.classList.remove("hidden");
+        }
+
+        // 자동 다운로드 시도
         const dlLink = document.createElement("a");
-        dlLink.href = blobUrl;
+        dlLink.href = lastGeneratedPdfUrl;
         dlLink.download = fileName;
         dlLink.style.display = "none";
         document.body.appendChild(dlLink);
         dlLink.click();
         document.body.removeChild(dlLink);
 
-        if (window.self !== window.top) {
-          window.open(blobUrl, "_blank");
-        }
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
-
-        showToast("활동기록판 PDF 파일이 저장되었어요 뀽! 📥✨", "🎉");
+        showToast("활동기록판 PDF 파일이 생성되었어요 뀽! 📥✨", "🎉");
       } catch (err) {
         console.error("PDF 저장 오류:", err);
-        showToast(`PDF 저장 오류: ${err && err.message ? err.message : "다시 시도해 주세요!"}`, "⚠️");
+        const detail = (err && (err.message || err.type)) ? String(err.message || err.type) : "브라우저 저장 권한을 확인해 주세요!";
+        showToast(`PDF 저장 오류: ${detail}`, "⚠️");
       } finally {
         if (btn) btn.disabled = false;
         if (btnText) btnText.textContent = "활동기록판 PDF 파일 저장";
